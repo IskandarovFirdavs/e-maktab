@@ -636,64 +636,6 @@ export default function Students({ isDark = false, onThemeChange }) {
         </MobileFilterOption>
       </MobileFilterDropdown>
 
-      <StatsGrid>
-        <StatCard
-          onClick={() => handleStatClick("all")}
-          style={{
-            cursor: "pointer",
-            border: activeFilter === "all" ? `2px solid #3b82f6` : "none",
-            transform: activeFilter === "all" ? "translateY(-2px)" : "none",
-            boxShadow:
-              activeFilter === "all"
-                ? "0 4px 12px rgba(59, 130, 246, 0.3)"
-                : "0 1px 3px rgba(0, 0, 0, 0.1)",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Jami Talabalar</StatLabel>
-              <StatIcon bgColor="#3b82f6">
-                <FaUserGraduate />
-              </StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#3b82f62c" numberColor="#3b82f6">
-                {totalStudentsCount}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-
-        <StatCard
-          onClick={() => handleStatClick("all")}
-          style={{
-            cursor: "pointer",
-            border: activeFilter === "all" ? `2px solid #10b981` : "none",
-            transform: activeFilter === "all" ? "translateY(-2px)" : "none",
-            boxShadow:
-              activeFilter === "all"
-                ? "0 4px 12px rgba(16, 185, 129, 0.3)"
-                : "0 1px 3px rgba(0, 0, 0, 0.1)",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Jami Guruhlar</StatLabel>
-              <StatIcon bgColor="#10b981">
-                <FaSchool />
-              </StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#10b98134" numberColor="#10b981">
-                {groups.length}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-      </StatsGrid>
-
       {/* Student Practice Days Section */}
       <PracticeDaysSection>
         <HeaderRow>

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, useParams } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./layout/Navbar.jsx";
 import styled, { ThemeProvider } from "styled-components";
 import { useState, useEffect } from "react";
@@ -29,23 +29,19 @@ function AppContent() {
 
   const location = useLocation();
 
-  // 🚫 IMPORTANT COMMENT FOR FUTURE DEVELOPERS:
-  // LOGIN ROUTE ("/") — NAVBAR SHOULD NOT BE SHOWN.
-  // DO NOT REMOVE THIS CONDITION.
-  // NAVBAR IS HIDDEN ONLY ON THE LOGIN PAGE.
+  // Login sahifasida navbar ko'rsatilmaydi
   const hideNavbar = location.pathname === "/";
 
   return (
     <ThemeProvider theme={dark ? darkTheme : lightTheme}>
       <AppWrapper>
-        {/* Navbar faqat login pageda ko‘rinmaydi */}
+        {/* Navbar faqat login pageda ko'rinmaydi */}
         {!hideNavbar && <Navbar dark={dark} setDark={setDark} />}
 
         <Routes>
           <Route path="/" element={<Login dark={dark} setDark={setDark} />} />
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/:id" element={<StudentDetail />} />
-
           <Route
             path="/student/practise/create"
             element={<StudentPractiseCreate />}
@@ -53,20 +49,40 @@ function AppContent() {
           <Route path="/student/practise/:id" element={<StudentPractise />} />
           <Route path="/students/:id" element={<Students />} />
           <Route path="/student/:id/day/:dayId" element={<PractiseDetail />} />
+
+          {/* ID bilan yo'llar */}
           <Route
-            path="/departments"
+            path="/departments/:facultyId"
             element={
               <PrivateRoute>
                 <Departments />
               </PrivateRoute>
             }
           />
-          <Route path="/directions" element={<Directions />} />
+
+          <Route
+            path="/directions/:departmentId"
+            element={
+              <PrivateRoute>
+                <Directions />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/faculties"
             element={
               <PrivateRoute>
-                <Faculties />{" "}
+                <Faculties />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/groups/:directionId"
+            element={
+              <PrivateRoute>
+                <Students />
               </PrivateRoute>
             }
           />

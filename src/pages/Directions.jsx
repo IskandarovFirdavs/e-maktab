@@ -9,7 +9,7 @@ import {
   FaChevronDown,
   FaChevronRight,
 } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import api from "../services/api.js";
 
 const slideIn = keyframes`
@@ -552,6 +552,7 @@ export default function Directions({ isDark = false }) {
   const theme = isDark ? darkTheme : lightTheme;
   const navigate = useNavigate();
   const location = useLocation();
+  const { departmentId } = useParams();
   const [openDirections, setOpenDirections] = useState({});
   const stats = calculateStats(hodData.directions);
   const [directions, setDirections] = useState([]);
@@ -565,18 +566,10 @@ export default function Directions({ isDark = false }) {
     }));
   };
 
-  const handleGroupClick = (groupName) => {
-    navigate(`/students/1`);
+  const handleGroupClick = (groupId) => {
+    navigate(`/groups/${groupId}`);
   };
 
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = "/file.png";
-    link.download = "hod_report.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
@@ -669,7 +662,7 @@ export default function Directions({ isDark = false }) {
               {direction.groups.map((group) => (
                 <GroupRow
                   key={group.id}
-                  onClick={() => handleGroupClick(group.name)}
+                  onClick={() => handleGroupClick(group.id)}
                 >
                   <GroupIcon>
                     <FaUsers />

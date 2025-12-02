@@ -306,7 +306,7 @@ const TableRow = styled.div`
   }
 
   @media (max-width: 1024px) {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 12px;
   }
 
@@ -331,7 +331,6 @@ const TableCell = styled.div`
   font-size: 15px;
   color: ${(props) => props.theme.text};
   padding: 8px 0;
-
   @media (max-width: 860px) {
     gap: 10px;
     font-size: 14px;
@@ -376,10 +375,11 @@ const MobileTable = styled.div`
 
 const CellIconWrapper = styled.div`
   display: flex;
-  width: 15%;
+  width: 100%;
   align-items: center;
   color: ${(props) => props.theme.text};
-  font-size: 16px;
+  font-size: 13px;
+  gap: 3px;
 
   @media (max-width: 768px) {
     font-size: 14px;
@@ -706,7 +706,7 @@ export default function Faculties({ isDark = false, onThemeChange }) {
             <TableRow
               key={f.id}
               style={{ cursor: "pointer" }}
-              onClick={() => navigate(`/departments?faculty=${f.id}`)}
+              onClick={() => navigate(`/departments/${f.id}`)}
             >
               <TableCell>
                 <CellContent>

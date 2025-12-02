@@ -8,7 +8,7 @@ import {
   FaUserGraduate,
   FaDirections,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api.js";
 
 const slideIn = keyframes`
@@ -628,6 +628,7 @@ const getStatusText = (status) => {
 export default function Departments({ isDark = false, onThemeChange }) {
   const theme = isDark ? darkTheme : lightTheme;
   const navigate = useNavigate();
+  const { facultyId } = useParams();
   const [showNotification, setShowNotification] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [filteredData, setFilteredData] = useState(departmentsData);
@@ -754,15 +755,13 @@ export default function Departments({ isDark = false, onThemeChange }) {
         </HeaderRow>
 
         {departments.map((dept) => {
-          const progressColors = getProgressColors(dept.completionRate);
-
           return (
             <TableRow
               key={dept.id}
               style={{
                 cursor: "pointer",
               }}
-              onClick={() => navigate(`/directions`)}
+              onClick={() => navigate(`/directions/${dept.id}`)}
             >
               <TableCell>
                 <CellContent>
