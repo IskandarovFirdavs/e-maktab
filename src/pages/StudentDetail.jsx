@@ -12,7 +12,7 @@ import {
   FaCalendarDay,
 } from "react-icons/fa";
 import { useNavigate, useParams, Link } from "react-router-dom";
-
+import api from "../services/api.js";
 const slideIn = keyframes`
   from {
     transform: translateX(100%);
@@ -241,6 +241,9 @@ const HeaderRow = styled.div`
   align-items: center;
   border-bottom: 1px solid ${(props) => props.theme.inputBorder};
 
+  h2 {
+    margin: 0;
+  }
   @media (max-width: 768px) {
     padding: 0px 20px 10px 20px;
   }
@@ -311,7 +314,8 @@ const Counter = styled.span`
 
 const TableRow = styled(Link)`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1.2fr 80px;
+  grid-template-columns: 2.5fr 1fr 1fr 1fr;
+  flex-direction: column-reverse;
   gap: 15px;
   padding: 20px;
   border-bottom: 1px solid ${(props) => props.theme.inputBorder};
@@ -397,9 +401,9 @@ const MobileTable = styled.div`
   display: none;
   @media (max-width: 860px) {
     width: 80vw;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 2fr 2fr;
     align-items: center;
-    justify-content: space-between;
   }
 `;
 
@@ -542,85 +546,22 @@ const MobileFilterOption = styled.option`
   padding: 10px;
 `;
 
-// Mock data - Teacher dashboard dizayniga o'xshash
-const practiceDaysData = [
-  {
-    id: 1,
-    student: "Karimova Zuhra",
-    group: "941-22",
-    location: "TashGRES",
-    date: "11/10/2023",
-    phone: "+998901234568",
-    score: 44,
-    status: "pending_review",
-    submitted: true,
-    approved: false,
-  },
-  {
-    id: 2,
-    student: "Qodirova Malika",
-    group: "941-22",
-    location: "TashGRES",
-    date: "15/10/2023",
-    phone: "+998901234572",
-    score: 43,
-    status: "pending_review",
-    submitted: true,
-    approved: false,
-  },
-  {
-    id: 3,
-    student: "Yusupov Sardor",
-    group: "942-22",
-    location: "Tashkent City",
-    date: "18/10/2023",
-    phone: "+998901234573",
-    score: 45,
-    status: "completed",
-    submitted: true,
-    approved: true,
-  },
-  {
-    id: 4,
-    student: "Toshmatov Aziz",
-    group: "941-22",
-    location: "TashGRES",
-    date: "20/10/2023",
-    score: 0,
-    status: "not_submitted",
-    submitted: false,
-    approved: false,
-  },
-];
-
-const getBadgeColors = (score, status) => {
-  if (status === "completed") return { bg: "#d1fae5", text: "#059669" };
-  if (status === "pending_review") return { bg: "#fef3c7", text: "#d97706" };
-  if (status === "not_submitted") return { bg: "#fee2e2", text: "#dc2626" };
-
-  if (score >= 45) return { bg: "#d1fae5", text: "#059669" };
-  if (score >= 44) return { bg: "#fef3c7", text: "#d97706" };
-  if (score >= 43) return { bg: "#fee2e2", text: "#dc2626" };
-  return { bg: "#f3f4f6", text: "#374151" };
+// getBadgeColors funksiyasini yangilash
+const getBadgeColors = (status) => {
+  if (status === "approved")
+    return { bg: "#d1fae5", text: "#059669", label: "Tasdiqlangan" };
+  if (status === "pending")
+    return { bg: "#fef3c7", text: "#d97706", label: "Kutilmoqda" };
+  if (status === "rejected")
+    return { bg: "#fee2e2", text: "#dc2626", label: "Rad etilgan" };
+  return { bg: "#f3f4f6", text: "#374151", label: "Noma'lum" };
 };
 
+// getStatusFromData funksiyasini yangilash (agar kerak bo'lsa)
 const getStatusFromData = (item) => {
-  if (item.approved) return "completed";
-  if (item.submitted && !item.approved) return "pending_review";
+  if (item.status === "approved") return "completed";
+  if (item.status === "pending") return "pending_review";
   return "not_submitted";
-};
-
-const getStatusText = (status) => {
-  switch (status) {
-    case "completed":
-      return "Tasdiqlangan";
-    case "pending_review":
-      return "Ko'rib chiqilmoqda";
-    case "not_submitted":
-      return "Topshirilmagan";
-    default:
-      return "Noma'lum";
-  }
 };
 
 export default function StudentDetail({ isDark = false }) {
@@ -628,36 +569,39 @@ export default function StudentDetail({ isDark = false }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const [activeFilter, setActiveFilter] = useState("all");
-  const [filteredData, setFilteredData] = useState(practiceDaysData);
+  const [practiceDays, setPracticeDays] = useState([]);
+
+  const [filteredData, setFilteredData] = useState(practiceDays);
   const [studentInfo, setStudentInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Mock student ma'lumotlari
-    const student = {
-      id: id || 1,
-      name: "Karimova Zuhra",
-      group: "941-22",
-      phone: "+998901234568",
-      totalScore: 132,
-      totalDays: 45,
-      completed: 12,
-      pending: 8,
-      notSubmitted: 25,
+    const filterPracticeDays = () => {
+      if (!practiceDays || !Array.isArray(practiceDays)) {
+        setFilteredData([]);
+        return;
+      }
+
+      if (activeFilter === "all") {
+        setFilteredData(practiceDays);
+      } else {
+        const filtered = practiceDays.filter((item) => {
+          // API'dan kelgan statuslarni filter statuslariga moslashtirish
+          if (activeFilter === "completed" && item.status === "approved")
+            return true;
+          if (activeFilter === "pending_review" && item.status === "pending")
+            return true;
+          if (activeFilter === "not_submitted" && item.status === "rejected")
+            return true;
+          return false;
+        });
+        setFilteredData(filtered);
+      }
     };
-    setStudentInfo(student);
-  }, [id]);
 
-  useEffect(() => {
-    if (activeFilter === "all") {
-      setFilteredData(practiceDaysData);
-    } else {
-      const filtered = practiceDaysData.filter(
-        (item) => getStatusFromData(item) === activeFilter
-      );
-      setFilteredData(filtered);
-    }
-  }, [activeFilter]);
-
+    filterPracticeDays();
+  }, [activeFilter, practiceDays]);
   const handleStatClick = (status) => {
     if (activeFilter === status) {
       setActiveFilter("all");
@@ -670,29 +614,108 @@ export default function StudentDetail({ isDark = false }) {
     setActiveFilter(event.target.value);
   };
 
-  const statusCounts = {
-    completed: practiceDaysData.filter(
-      (item) => getStatusFromData(item) === "completed"
-    ).length,
-    pending_review: practiceDaysData.filter(
-      (item) => getStatusFromData(item) === "pending_review"
-    ).length,
-    not_submitted: practiceDaysData.filter(
-      (item) => getStatusFromData(item) === "not_submitted"
-    ).length,
-    all: practiceDaysData.length,
+  // practiceDaysData o'rniga haqiqiy practiceDays dan statistikani hisoblash
+  const calculateStats = () => {
+    if (!practiceDays || !Array.isArray(practiceDays)) {
+      return {
+        completed: 0,
+        pending_review: 0,
+        not_submitted: 0,
+        all: 0,
+      };
+    }
+
+    const stats = {
+      completed: practiceDays.filter((day) => day.status === "approved").length,
+      pending_review: practiceDays.filter((day) => day.status === "pending")
+        .length,
+      not_submitted: practiceDays.filter((day) => day.status === "rejected")
+        .length,
+      all: practiceDays.length,
+    };
+
+    return stats;
   };
 
-  if (!studentInfo) {
+  const statusCounts = calculateStats();
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      try {
+        // Student ma'lumotlarini olish
+        const data = await api.getUserById(id);
+        console.log("Student data:", data); // Konsolda ko'rish uchun
+        setStudentInfo(data);
+
+        // Agar student ma'lumotlarida practice_days bo'lsa
+        if (data.practice_days && Array.isArray(data.practice_days)) {
+          setPracticeDays(data.practice_days);
+        } else {
+          setPracticeDays([]);
+        }
+      } catch (err) {
+        console.error("Talaba ma'lumotlarini olishda xato:", err);
+        setError("Talaba ma'lumotlarini yuklashda xato yuz berdi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchStudentData();
+    }
+  }, [id]);
+
+  if (loading) {
     return (
       <DashboardContainer>
-        <div style={{ textAlign: "center", padding: "80px", fontSize: "18px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+          }}
+        >
           Yuklanmoqda...
         </div>
       </DashboardContainer>
     );
   }
 
+  if (error) {
+    return (
+      <DashboardContainer>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+            color: "#ef4444",
+          }}
+        >
+          {error}
+        </div>
+      </DashboardContainer>
+    );
+  }
+
+  if (!studentInfo) {
+    return (
+      <DashboardContainer>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "200px",
+          }}
+        >
+          Talaba ma'lumotlari topilmadi
+        </div>
+      </DashboardContainer>
+    );
+  }
   return (
     <DashboardContainer>
       {/* Mobile Filter Dropdown */}
@@ -727,7 +750,7 @@ export default function StudentDetail({ isDark = false }) {
         >
           <StatContent>
             <Statdiv>
-              <StatLabel>Tasdiqlangan </StatLabel>
+              <StatLabel>Tasdiqlangan</StatLabel>
               <StatIcon bgColor="#10b981">
                 <FaCalendarCheck />
               </StatIcon>
@@ -757,7 +780,7 @@ export default function StudentDetail({ isDark = false }) {
         >
           <StatContent>
             <Statdiv>
-              <StatLabel>Ko'rib chiqilmoqda</StatLabel>
+              <StatLabel>Kutilmoqda</StatLabel>
               <StatIcon bgColor="#f59e0b">!</StatIcon>
             </Statdiv>
             <SmallStat>
@@ -785,10 +808,8 @@ export default function StudentDetail({ isDark = false }) {
         >
           <StatContent>
             <Statdiv>
-              <StatLabel>Topshirilmagan</StatLabel>
-              <StatIcon bgColor="#ef4444">
-                <FaEyeSlash />
-              </StatIcon>
+              <StatLabel>Rad etilgan</StatLabel>
+              <StatIcon bgColor="#ef4444">×</StatIcon>
             </Statdiv>
             <SmallStat>
               <StatNumber bgColor="#ef44442c" numberColor="#ef4444">
@@ -830,7 +851,18 @@ export default function StudentDetail({ isDark = false }) {
       {/* Student Practice Days Section */}
       <PracticeDaysSection>
         <HeaderRow>
-          <SectionTitle>{studentInfo.name} - AMALIYOT KUNLARI</SectionTitle>
+          {studentInfo && (
+            <div>
+              <h2>
+                {studentInfo.first_name} {studentInfo.last_name}
+              </h2>
+              <div style={{ fontSize: "14px", opacity: 0.7, marginTop: "4px" }}>
+                {studentInfo.group?.group_number
+                  ? `Guruh: ${studentInfo.group.group_number}`
+                  : ""}
+              </div>
+            </div>
+          )}
           <div
             style={{
               display: "flex",
@@ -839,81 +871,128 @@ export default function StudentDetail({ isDark = false }) {
               height: "100%",
             }}
           >
-            <Counter>
-              {filteredData.length}/{practiceDaysData.length}
-            </Counter>
-            <Button onClick={() => navigate(`/students`)}>
-              Orqaga qaytish
-            </Button>
+            <Counter>{practiceDays.length} ta amaliyot</Counter>
           </div>
         </HeaderRow>
 
-        {filteredData.map((row, index) => {
-          const badgeColors = getBadgeColors(row.score, row.status);
-          const statusText = getStatusText(row.status);
+        {filteredData
+          .slice()
+          .reverse()
+          .map((day) => {
+            const statusColors = getBadgeColors(day.status);
 
-          return (
-            <TableRow key={row.id} to={`/student/1/day/1`}>
-              <TableCell>
-                <CellIcon>!</CellIcon>
-                <CellContent>
-                  <CellIconWrapper>
-                    <FaMapMarkerAlt />
-                    <CellLabel>Joylashuv</CellLabel>
-                  </CellIconWrapper>
-                  <CellValue>{row.location}</CellValue>
-                </CellContent>
-              </TableCell>
-              <TableCell>
-                <CellContent>
-                  <CellIconWrapper>
-                    <FaCalendarDay />
-                    <CellLabel>Sana</CellLabel>
-                  </CellIconWrapper>
-                  <CellValue>{row.date}</CellValue>
-                </CellContent>
-              </TableCell>
-
-              <TableCell>
-                <CellContent>
-                  <CellIconWrapper>
-                    <FaPhone />
-                    <CellLabel>Telefon raqam</CellLabel>
-                  </CellIconWrapper>
-                  <CellValue>{row.phone || "Ko'rsatilmagan"}</CellValue>
-                </CellContent>
-              </TableCell>
-
-              <MobileTable>
-                <CellIcon bgColor={row.iconBg}>!</CellIcon>
-                <MobileTableCell>
+            return (
+              <TableRow key={day.id} to={`/student/${id}/day/${day.id}`}>
+                <TableCell>
+                  <CellIcon
+                    style={{
+                      backgroundColor: statusColors.bg,
+                      color: statusColors.text,
+                    }}
+                  >
+                    {day.status === "approved"
+                      ? "✓"
+                      : day.status === "pending"
+                      ? "!"
+                      : day.status === "rejected"
+                      ? "×"
+                      : "?"}
+                  </CellIcon>
                   <CellContent>
                     <CellIconWrapper>
                       <FaMapMarkerAlt />
-                      <CellLabel>Joylashuv</CellLabel>
+                      <CellLabel>Tashkilot</CellLabel>
                     </CellIconWrapper>
-                    <CellValue>{row.location}</CellValue>
+                    <CellValue>{day.org_name || "Ko'rsatilmagan"}</CellValue>
                   </CellContent>
-                </MobileTableCell>
+                </TableCell>
 
-                <ScoreBadge
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  {row.score} / 45
-                </ScoreBadge>
-              </MobileTable>
-              <ScoreBadge
-                style={{ backgroundColor: "#ef44442c", color: "#ef4444" }}
-              >
-                rejected
-              </ScoreBadge>
-              <ScoreBadge>{row.score} / 45</ScoreBadge>
-            </TableRow>
-          );
-        })}
+                <TableCell>
+                  <CellContent>
+                    <CellIconWrapper>
+                      <FaCalendarDay />
+                      <CellLabel>Sana</CellLabel>
+                    </CellIconWrapper>
+                    <CellValue>
+                      {day.date
+                        ? new Date(day.date).toLocaleDateString("uz-UZ")
+                        : "Ko'rsatilmagan"}
+                    </CellValue>
+                  </CellContent>
+                </TableCell>
+
+                <TableCell>
+                  <CellContent>
+                    <CellIconWrapper>
+                      <FaUserGraduate />
+                      <CellLabel>Mas'ul shaxs</CellLabel>
+                    </CellIconWrapper>
+                    <CellValue>{day.duty_name || "Ko'rsatilmagan"}</CellValue>
+                  </CellContent>
+                </TableCell>
+
+                <TableCell>
+                  <CellContent>
+                    <CellIconWrapper>
+                      <FaCalendarCheck />
+                      <CellLabel>Holat</CellLabel>
+                    </CellIconWrapper>
+                    <CellValue>
+                      <ScoreBadge
+                        style={{
+                          backgroundColor: statusColors.bg,
+                          color: statusColors.text,
+                        }}
+                      >
+                        {statusColors.label}
+                      </ScoreBadge>
+                    </CellValue>
+                  </CellContent>
+                </TableCell>
+
+                {/* Mobile view */}
+                <MobileTable>
+                  <CellIcon
+                    style={{
+                      backgroundColor: statusColors.bg,
+                      color: statusColors.text,
+                    }}
+                  >
+                    {day.status === "approved"
+                      ? "✓"
+                      : day.status === "pending"
+                      ? "!"
+                      : day.status === "rejected"
+                      ? "×"
+                      : "?"}
+                  </CellIcon>{" "}
+                  <MobileTableCell>
+                    <CellContent>
+                      <CellIconWrapper>
+                        <FaMapMarkerAlt />
+                        <CellLabel>Tashkilot</CellLabel>
+                      </CellIconWrapper>
+                      <CellValue>{day.org_name || "Ko'rsatilmagan"}</CellValue>
+                    </CellContent>
+                  </MobileTableCell>
+                  <MobileTableCell>
+                    <CellContent>
+                      <CellIconWrapper>
+                        <FaMapMarkerAlt />
+                        <CellLabel>Sana</CellLabel>
+                      </CellIconWrapper>
+                      <CellValue>
+                        {" "}
+                        {day.date
+                          ? new Date(day.date).toLocaleDateString("uz-UZ")
+                          : "Ko'rsatilmagan"}
+                      </CellValue>
+                    </CellContent>
+                  </MobileTableCell>
+                </MobileTable>
+              </TableRow>
+            );
+          })}
       </PracticeDaysSection>
     </DashboardContainer>
   );

@@ -626,19 +626,16 @@ const getStatusText = (status) => {
 };
 
 export default function Departments({ isDark = false, onThemeChange }) {
+  const { id } = useParams();
+  const departmentId = id;
+
   const theme = isDark ? darkTheme : lightTheme;
   const navigate = useNavigate();
-  const { facultyId } = useParams();
-  const [showNotification, setShowNotification] = useState(false);
+  const [department, setDepartment] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [filteredData, setFilteredData] = useState(departmentsData);
-  const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const handleNotificationClose = () => {
-    setShowNotification(false);
-  };
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("preferredTheme");
@@ -662,84 +659,46 @@ export default function Departments({ isDark = false, onThemeChange }) {
     }
   }, [activeFilter]);
 
-  const handleMobileFilterChange = (event) => {
-    setActiveFilter(event.target.value);
-  };
-
-  const totalStats = {
-    departments: departmentsData.length,
-    students: departmentsData.reduce((sum, dept) => sum + dept.students, 0),
-    teachers: departmentsData.reduce((sum, dept) => sum + dept.teachers, 0),
-    groups: departmentsData.reduce((sum, dept) => sum + dept.groups, 0),
-    avgCompletion: Math.round(
-      departmentsData.reduce((sum, dept) => sum + dept.completionRate, 0) /
-        departmentsData.length
-    ),
-  };
   useEffect(() => {
-    const fetchDepartments = async () => {
+    if (!departmentId) return;
+    let aborded = false;
+    const controller = new AbortController();
+
+    async function load() {
+      setLoading(true);
+      setError(null);
       try {
-        const data = await api.getDepartments();
-        setDepartments(data); // API dan kelgan arrayni state ga o'rnatish
+        const data = await api.getFaculty(departmentId, {
+          signal: controller.signal,
+        });
+        if (!aborded) setDepartment(data);
       } catch (err) {
-        console.error("Departmentlarni olishda xato:", err);
-        setError("Departmentlarni yuklashda xato yuz berdi.");
+        if (err.name === "AbortError") return;
+        if (!aborded) setError(err.message || String(err));
       } finally {
-        setLoading(false);
+        if (!aborded) setLoading(false);
       }
+    }
+    load();
+    return () => {
+      aborded = true;
+      controller.abort();
     };
+  }, [departmentId]);
 
-    fetchDepartments();
-  }, []);
-
-  if (loading) return <p>Yuklanmoqda...</p>;
-  if (error) return <p>{error}</p>;
+  // render
+  if (!departmentId) return <div className="p-4">No id provided .</div>;
+  if (loading) return <div className="p-4">Loading . .</div>;
+  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (!department)
+    return <div className="p-4">No data found for id: {departmentId}</div>;
   return (
     <DashboardContainer>
-      {showNotification && (
-        <Notification onClick={handleNotificationClose}>
-          Muvaffaqiyatli yuborildi! Ma'lumotlaringiz qabul qilindi.
-        </Notification>
-      )}
-
       {/* Mobile Filter Dropdown */}
-      <MobileFilterDropdown
-        value={activeFilter}
-        onChange={handleMobileFilterChange}
-      >
-        <MobileFilterOption value="all">Barcha Kafedralar</MobileFilterOption>
-        <MobileFilterOption value="active">Faol Kafedralar</MobileFilterOption>
-        <MobileFilterOption value="inactive">Faol Emas</MobileFilterOption>
-      </MobileFilterDropdown>
 
-      <StatsGrid>
-        <StatCard>
-          <StatIcon bgColor="#3B82F6">
-            <FaBuilding />
-          </StatIcon>
-          <StatContent>
-            <StatLabel>Kafedralar</StatLabel>
-            <StatNumber>{totalStats.departments}</StatNumber>
-            <StatDescription>Jami kafedralar soni</StatDescription>
-          </StatContent>
-        </StatCard>
-
-        <StatCard>
-          <StatIcon bgColor="#10B981">
-            <FaDirections />
-          </StatIcon>
-          <StatContent>
-            <StatLabel>Yo'nalishlar</StatLabel>
-            <StatNumber>3</StatNumber>
-            <StatDescription>Jami yo'nalishlar soni</StatDescription>
-          </StatContent>
-        </StatCard>
-      </StatsGrid>
-
-      {/* Departments Section */}
       <DepartmentsSection>
         <HeaderRow>
-          <SectionTitle>KAFEDRALAR RO'YXATI</SectionTitle>
+          <SectionTitle>{department.name} — Kafedralar ro‘yxati</SectionTitle>
           <div
             style={{
               display: "flex",
@@ -748,66 +707,24 @@ export default function Departments({ isDark = false, onThemeChange }) {
               height: "100%",
             }}
           >
-            <Counter>
-              {filteredData.length}/{departmentsData.length}
-            </Counter>
+            <Counter>{department.departments?.length || 0} ta</Counter>
           </div>
         </HeaderRow>
+        {department.departments?.map((dep) => (
+          <TableRow key={dep.id}>
+            <TableCell>
+              <CellIcon bgColor="#3B82F6">
+                <FaBuilding />
+              </CellIcon>
 
-        {departments.map((dept) => {
-          return (
-            <TableRow
-              key={dept.id}
-              style={{
-                cursor: "pointer",
-              }}
-              onClick={() => navigate(`/directions/${dept.id}`)}
-            >
-              <TableCell>
-                <CellContent>
-                  <CellIconWrapper>
-                    <CellLabel>Kafedra</CellLabel>
-                  </CellIconWrapper>
-                  <CellValue>{dept.name}</CellValue>
-                  <CellLabel>{dept.attf}</CellLabel>
-                </CellContent>
-              </TableCell>
-
-              <TableCell>
-                <CellContent>
-                  <CellIconWrapper>
-                    <FaUserGraduate />
-                    <CellLabel>Kafedra Mudiri</CellLabel>
-                  </CellIconWrapper>
-                  <CellValue>
-                    {dept.head.first_name} {dept.head.last_name}
-                  </CellValue>
-                </CellContent>
-              </TableCell>
-
-              <TableCell>
-                <CellContent>
-                  <CellIconWrapper>
-                    <FaDirections />
-                    <CellLabel>Yo'nalishlar</CellLabel>
-                  </CellIconWrapper>
-                  <CellValue>2 ta</CellValue>
-                </CellContent>
-              </TableCell>
-
-              <MobileTable>
-                <MobileTableCell>
-                  <CellContent>
-                    <CellIconWrapper>
-                      <CellLabel>Kafedra</CellLabel>
-                    </CellIconWrapper>
-                    <CellValue>{dept.name}</CellValue>
-                  </CellContent>
-                </MobileTableCell>
-              </MobileTable>
-            </TableRow>
-          );
-        })}
+              <CellContent>
+                <CellLabel>Kafedra</CellLabel>
+                <CellValue>{dep.name}</CellValue>{" "}
+                <CellLabel>{dep.abbr}</CellLabel>
+              </CellContent>
+            </TableCell>
+          </TableRow>
+        ))}
       </DepartmentsSection>
     </DashboardContainer>
   );

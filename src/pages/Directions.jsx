@@ -601,7 +601,7 @@ export default function Directions({ isDark = false }) {
             </Statdiv>
             <SmallStat>
               <StatNumber bgColor="#8b5cf634" numberColor="#8b5cf6">
-                {stats.totalDirections}
+                {directions.length}
               </StatNumber>
             </SmallStat>
           </StatContent>
@@ -617,7 +617,10 @@ export default function Directions({ isDark = false }) {
             </Statdiv>
             <SmallStat>
               <StatNumber bgColor="#3b82f634" numberColor="#3b82f6">
-                {stats.totalGroups}
+                {directions.reduce(
+                  (sum, f) => sum + (f.groups?.length || 0),
+                  0
+                )}
               </StatNumber>
             </SmallStat>
           </StatContent>

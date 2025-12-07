@@ -532,16 +532,10 @@ const getPerformanceColors = (rate) => {
 export default function Faculties({ isDark = false, onThemeChange }) {
   const theme = isDark ? darkTheme : lightTheme;
   const navigate = useNavigate();
-  const [showNotification, setShowNotification] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
-  const [filteredData, setFilteredData] = useState(facultiesData);
   const [faculties, setFaculties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const handleNotificationClose = () => {
-    setShowNotification(false);
-  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("preferredTheme");
@@ -553,17 +547,6 @@ export default function Faculties({ isDark = false, onThemeChange }) {
   useEffect(() => {
     localStorage.setItem("preferredTheme", isDark ? "dark" : "light");
   }, [isDark]);
-
-  useEffect(() => {
-    if (activeFilter === "all") {
-      setFilteredData(facultiesData);
-    } else {
-      const filtered = facultiesData.filter(
-        (item) => item.status === activeFilter
-      );
-      setFilteredData(filtered);
-    }
-  }, [activeFilter]);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -591,19 +574,6 @@ export default function Faculties({ isDark = false, onThemeChange }) {
     setActiveFilter(event.target.value);
   };
 
-  const totalStats = {
-    faculties: facultiesData.length,
-    departments: facultiesData.reduce(
-      (sum, faculty) => sum + faculty.departments,
-      0
-    ),
-    students: facultiesData.reduce((sum, faculty) => sum + faculty.students, 0),
-    teachers: facultiesData.reduce((sum, faculty) => sum + faculty.teachers, 0),
-    avgPerformance: Math.round(
-      facultiesData.reduce((sum, faculty) => sum + faculty.performance, 0) /
-        facultiesData.length
-    ),
-  };
   if (loading) {
     return (
       <DashboardContainer>
@@ -641,21 +611,7 @@ export default function Faculties({ isDark = false, onThemeChange }) {
   }
   return (
     <DashboardContainer>
-      {showNotification && (
-        <Notification onClick={handleNotificationClose}>
-          Muvaffaqiyatli yuborildi! Ma'lumotlaringiz qabul qilindi.
-        </Notification>
-      )}
-
       {/* Mobile Filter Dropdown */}
-      <MobileFilterDropdown
-        value={activeFilter}
-        onChange={handleMobileFilterChange}
-      >
-        <MobileFilterOption value="all">Barcha Fakultetlar</MobileFilterOption>
-        <MobileFilterOption value="active">Faol Fakultetlar</MobileFilterOption>
-        <MobileFilterOption value="inactive">Faol Emas</MobileFilterOption>
-      </MobileFilterDropdown>
 
       <StatsGrid>
         <StatCard>
@@ -664,7 +620,7 @@ export default function Faculties({ isDark = false, onThemeChange }) {
           </StatIcon>
           <StatContent>
             <StatLabel>Fakultetlar</StatLabel>
-            <StatNumber>{totalStats.faculties}</StatNumber>
+            <StatNumber>{faculties.length}</StatNumber>
             <StatDescription>Jami fakultetlar soni</StatDescription>
           </StatContent>
         </StatCard>
@@ -675,7 +631,12 @@ export default function Faculties({ isDark = false, onThemeChange }) {
           </StatIcon>
           <StatContent>
             <StatLabel>Kafedralar</StatLabel>
-            <StatNumber>{totalStats.departments}</StatNumber>
+            <StatNumber>
+              {faculties.reduce(
+                (sum, f) => sum + (f.departments?.length || 0),
+                0
+              )}
+            </StatNumber>
             <StatDescription>Jami kafedralar soni</StatDescription>
           </StatContent>
         </StatCard>

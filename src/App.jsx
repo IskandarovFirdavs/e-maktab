@@ -52,7 +52,7 @@ function AppContent() {
 
           {/* ID bilan yo'llar */}
           <Route
-            path="/departments/:facultyId"
+            path="/departments/:id"
             element={
               <PrivateRoute>
                 <Departments />

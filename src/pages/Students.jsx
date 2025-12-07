@@ -524,14 +524,10 @@ export default function Students({ isDark = false, onThemeChange }) {
   const location = useLocation();
   const [showNotification, setShowNotification] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
-  const [groups, setGroups] = useState([]); // Guruhlar ro'yxati
-  const [students, setStudents] = useState([]); // Barcha studentlar ro'yxati (guruhlar ichidan yig'ilgan)
+  const [groups, setGroups] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
-
-  const handleNotificationClose = () => {
-    setShowNotification(false);
-  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("preferredTheme");
@@ -578,7 +574,6 @@ export default function Students({ isDark = false, onThemeChange }) {
         const data = await api.getGroups();
         setGroups(data);
 
-        // Barcha guruhlardagi studentlarni yig'ish
         const allStudents = [];
         data.forEach((group) => {
           if (group.students && group.students.length > 0) {
@@ -604,9 +599,6 @@ export default function Students({ isDark = false, onThemeChange }) {
     fetchGroups();
   }, []);
 
-  // Jami studentlar sonini hisoblash
-  const totalStudentsCount = students.length;
-
   if (loading) {
     return <DashboardContainer>Yuklanmoqda...</DashboardContainer>;
   }
@@ -615,12 +607,6 @@ export default function Students({ isDark = false, onThemeChange }) {
   }
   return (
     <DashboardContainer>
-      {showNotification && (
-        <Notification onClick={handleNotificationClose}>
-          Muvaffaqiyatli yuborildi! Ma'lumotlaringiz qabul qilindi.
-        </Notification>
-      )}
-
       {/* Mobile Filter Dropdown */}
       <MobileFilterDropdown
         value={activeFilter}
