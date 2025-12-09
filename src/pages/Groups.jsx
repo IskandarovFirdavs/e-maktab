@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { lightTheme, darkTheme } from "../styles/theme.js";
-import { PiStudentBold } from "react-icons/pi";
+import { HiMiniUserGroup } from "react-icons/hi2";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaUserGraduate, FaSchool } from "react-icons/fa";
 import api from "../services/api.js";
 
 const colorFlow = keyframes`
@@ -22,8 +21,6 @@ const DashboardContainer = styled.div`
   color: ${(p) => p.theme.text};
   padding: 30px 50px;
   transition: all 0.3s ease;
-
-  /* Clean blue gradient that moves across */
   background: linear-gradient(
     90deg,
     transparent 0%,
@@ -33,7 +30,6 @@ const DashboardContainer = styled.div`
   background-size: 200% 100%;
   animation: ${colorFlow} 4s linear infinite;
   margin-top: -3px;
-  /* Simple animated top border */
   position: relative;
 
   &::before {
@@ -76,7 +72,7 @@ const SectionTitle = styled.h2`
   }
 `;
 
-const PracticeDaysSection = styled.div`
+const DirectionsSection = styled.div`
   background-color: ${(props) => props.theme.cardBg};
   border-radius: 8px;
   padding: 20px;
@@ -108,7 +104,6 @@ const HeaderRow = styled.div`
     flex-direction: column;
     gap: 12px;
     align-items: flex-start;
-    display: flex;
   }
 `;
 
@@ -122,21 +117,15 @@ const Counter = styled.span`
   }
 `;
 
-const TableRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 15px;
+const DirectionRow = styled.div`
   padding: 20px;
   border-bottom: 1px solid ${(props) => props.theme.inputBorder};
-  align-items: center;
   transition: all 0.2s ease;
   border-radius: 8px;
   margin: 4px 0;
 
   &:hover {
     background-color: #64646444;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px ${(props) => props.theme.cardShadow};
     cursor: pointer;
   }
 
@@ -144,22 +133,15 @@ const TableRow = styled.div`
     border-bottom: none;
   }
 
-  @media (max-width: 1024px) {
-    gap: 12px;
+  @media (max-width: 768px) {
+    padding: 15px;
   }
 
-  @media (max-width: 860px) {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  @media (max-width: 480px) {
     padding: 12px 8px;
+    margin: 8px 0;
     border: 1px solid ${(props) => props.theme.inputBorder};
     border-radius: 6px;
-
-    &:hover {
-      transform: none;
-      box-shadow: 0 2px 4px ${(props) => props.theme.cardShadow};
-    }
   }
 `;
 
@@ -174,16 +156,38 @@ const TableCell = styled.div`
   @media (max-width: 860px) {
     gap: 10px;
     font-size: 14px;
+    display: none;
   }
 
   @media (max-width: 480px) {
     gap: 8px;
     font-size: 13px;
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    &:last-child {
-      display: none;
-    }
+  }
+`;
+
+const CellIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background-color: ${(props) => props.bgColor || "#f59e0b"};
+  color: white;
+  flex-shrink: 0;
+  font-weight: bold;
+
+  @media (max-width: 768px) {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+  }
+
+  @media (max-width: 480px) {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
   }
 `;
 
@@ -195,23 +199,6 @@ const CellContent = styled.div`
   @media (max-width: 480px) {
     gap: 2px;
     width: 100%;
-  }
-`;
-
-const CellIconWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: ${(props) => props.theme.text};
-  font-size: 16px;
-
-  @media (max-width: 768px) {
-    font-size: 14px;
-    gap: 6px;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 13px;
   }
 `;
 
@@ -245,39 +232,15 @@ const CellValue = styled.span`
   }
 `;
 
-const TableCellInside = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  @media (max-width: 480px) {
-    width: 100%;
-    justify-content: space-between;
-  }
-`;
-
-const TableCellAvatar = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #3b82f6;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
-`;
-
-export default function Students({ isDark = false, onThemeChange }) {
+export default function Groups({ isDark = false }) {
   const { id } = useParams();
-  const groupId = id;
+  const directionId = id;
 
   const theme = isDark ? darkTheme : lightTheme;
   const navigate = useNavigate();
-  const [group, setGroup] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState();
+  const [direction, setDirection] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("preferredTheme");
@@ -291,7 +254,7 @@ export default function Students({ isDark = false, onThemeChange }) {
   }, [isDark]);
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!directionId) return;
     let aborded = false;
     const controller = new AbortController();
 
@@ -299,10 +262,10 @@ export default function Students({ isDark = false, onThemeChange }) {
       setLoading(true);
       setError(null);
       try {
-        const data = await api.getGroup(groupId, {
+        const data = await api.getDirection(directionId, {
           signal: controller.signal,
         });
-        if (!aborded) setGroup(data);
+        if (!aborded) setDirection(data);
       } catch (err) {
         if (err.name === "AbortError") return;
         if (!aborded) setError(err.message || String(err));
@@ -315,20 +278,20 @@ export default function Students({ isDark = false, onThemeChange }) {
       aborded = true;
       controller.abort();
     };
-  }, [groupId]);
+  }, [directionId]);
 
   // render
-  if (!groupId) return <div className="p-4">No id provided .</div>;
+  if (!directionId) return <div className="p-4">No id provided .</div>;
   if (loading) return <div className="p-4">Loading . .</div>;
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
-  if (!group) return <div className="p-4">No data found for id: {groupId}</div>;
-
+  if (!direction)
+    return <div className="p-4">No data found for id: {directionId}</div>;
   return (
     <DashboardContainer>
-      {/* Student Practice Days Section */}
-      <PracticeDaysSection>
+      {/* Directions Section */}
+      <DirectionsSection>
         <HeaderRow>
-          <SectionTitle>{group.group_number}-guruh talabalari</SectionTitle>
+          <SectionTitle>{direction.abbr} GURUHLARI</SectionTitle>
           <div
             style={{
               display: "flex",
@@ -337,51 +300,31 @@ export default function Students({ isDark = false, onThemeChange }) {
               height: "100%",
             }}
           >
-            <Counter>{group.students.length} ta talaba</Counter>
+            <Counter>{direction.groups?.length || 0} ta guruh</Counter>
           </div>
         </HeaderRow>
-
-        {group.students.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "40px 20px",
-              color: theme.text,
-              opacity: 0.7,
-            }}
-          >
-            <FaUserGraduate
-              style={{ fontSize: "48px", marginBottom: "16px" }}
-            />
-            <p>Hozircha talabalar mavjud emas</p>
-          </div>
-        ) : (
-          group.students.map((student) => (
-            <TableRow
-              key={student.id}
-              onClick={() => navigate(`/student/${student.id}`)}
-            >
-              <TableCell>
-                <TableCellInside>
-                  <TableCellAvatar>
-                    {student.first_name?.[0]}
-                    {student.last_name?.[0]}
-                  </TableCellAvatar>
-                  <CellContent>
-                    <CellIconWrapper>
-                      <PiStudentBold />
-                      <CellLabel>Talaba</CellLabel>
-                    </CellIconWrapper>
-                    <CellValue>
-                      {student.first_name} {student.last_name}
-                    </CellValue>
-                  </CellContent>
-                </TableCellInside>
-              </TableCell>
-            </TableRow>
-          ))
+        {direction.groups?.length === 0 && (
+          <p style={{ padding: "20px", color: theme.text }}>
+            Hozircha guruhlar mavjud emas.
+          </p>
         )}
-      </PracticeDaysSection>
+        {direction.groups?.map((grp) => (
+          <DirectionRow
+            key={grp.id}
+            onClick={() => navigate(`/group/${grp.id}`)}
+          >
+            <TableCell>
+              <CellIcon bgColor="#3B82F6">
+                <HiMiniUserGroup />
+              </CellIcon>
+              <CellContent>
+                <CellLabel>Guruh</CellLabel>
+                <CellValue>{grp.group_number} guruhi</CellValue>{" "}
+              </CellContent>
+            </TableCell>
+          </DirectionRow>
+        ))}
+      </DirectionsSection>
     </DashboardContainer>
   );
 }

@@ -1,39 +1,13 @@
 import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { lightTheme, darkTheme } from "../styles/theme.js";
-import {
-  FaEyeSlash,
-  FaUserGraduate,
-  FaChalkboardTeacher,
-  FaSchool,
-  FaCalendarCheck,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaCalendarDay,
-} from "react-icons/fa";
+import { FaUserGraduate } from "react-icons/fa";
+import { PiStudentBold } from "react-icons/pi";
+import { FaLocationDot } from "react-icons/fa6";
+import { MdAccessTime } from "react-icons/md";
+import { FaEyeSlash } from "react-icons/fa6";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import api from "../services/api.js";
-const slideIn = keyframes`
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-`;
-
-const slideOut = keyframes`
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-`;
 
 const colorFlow = keyframes`
   0% {
@@ -107,102 +81,6 @@ const StatsGrid = styled.div`
   }
 `;
 
-const StatCard = styled.div`
-  background-color: ${(p) => p.theme.statCard};
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 1px 3px ${(props) => props.theme.cardShadow};
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px ${(props) => props.theme.cardShadow};
-  }
-
-  @media (max-width: 1200px) {
-    padding: 15px;
-    gap: 12px;
-  }
-
-  @media (max-width: 1024px) {
-    padding: 18px;
-  }
-`;
-
-const StatIcon = styled.div`
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: ${(props) => props.bgColor};
-  color: ${(p) => p.theme.statCard};
-
-  @media (max-width: 1200px) {
-    width: 18px;
-    height: 18px;
-    font-size: 12px;
-  }
-`;
-
-const StatContent = styled.div`
-  flex: 1;
-`;
-
-const SmallStat = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 12px;
-`;
-
-const Statdiv = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const StatLabel = styled.p`
-  margin: 0;
-  font-size: 18px;
-  opacity: 0.7;
-  font-weight: 600;
-  color: ${(p) => p.theme.text};
-
-  @media (max-width: 1200px) {
-    font-size: 16px;
-  }
-
-  @media (max-width: 1024px) {
-    font-size: 15px;
-  }
-`;
-
-const StatNumber = styled.p`
-  margin: 5px 0 0 0;
-  font-size: 24px;
-  font-weight: bold;
-  width: 35%;
-  text-align: center;
-  border-radius: 10px;
-  color: ${(props) => props.numberColor};
-  background-color: ${(props) => props.bgColor};
-
-  @media (max-width: 1200px) {
-    font-size: 20px;
-    width: 40%;
-  }
-
-  @media (max-width: 1024px) {
-    font-size: 22px;
-  }
-`;
-
 const SectionTitle = styled.h2`
   margin: 0px;
   font-size: 26px;
@@ -256,52 +134,6 @@ const HeaderRow = styled.div`
   }
 `;
 
-const Button = styled.button`
-  background-color: ${(props) => props.theme.buttonBg};
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    transition: left 0.5s ease;
-  }
-
-  &:hover::before {
-    left: 100%;
-  }
-
-  &:hover {
-    background-color: ${(props) => props.theme.buttonHover};
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px ${(props) => props.theme.buttonBg}40;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-`;
-
 const Counter = styled.span`
   font-size: 14px;
   font-weight: 600;
@@ -314,7 +146,7 @@ const Counter = styled.span`
 
 const TableRow = styled(Link)`
   display: grid;
-  grid-template-columns: 2.5fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
   flex-direction: column-reverse;
   gap: 15px;
   padding: 20px;
@@ -415,8 +247,8 @@ const CellIcon = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  background-color: #f59e0b;
-  color: #fef3c7;
+  background-color: ${(props) => props.badgeColor};
+  color: ${(props) => props.textColor};
   flex-shrink: 0;
   font-weight: bold;
 
@@ -490,10 +322,32 @@ const CellValue = styled.span`
     word-break: break-word;
   }
 `;
+const TableCellInside = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+`;
+const TableCellAvatar = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+`;
 
 const ScoreBadge = styled.div`
-  background-color: #f59e0b13;
-  color: #f59e0b;
+  background-color: ${(props) => props.badgeColor};
+  color: ${(props) => props.textColor};
   padding: 8px 12px;
   border-radius: 8px;
   font-weight: 700;
@@ -502,11 +356,10 @@ const ScoreBadge = styled.div`
   min-width: 60px;
   border: 1px solid ${(props) => props.textColor}20;
 
-  @media (max-width: 860px) {
+  @media (max-width: 768px) {
     padding: 6px 10px;
     font-size: 13px;
     min-width: 50px;
-    display: none;
   }
 
   @media (max-width: 480px) {
@@ -515,484 +368,205 @@ const ScoreBadge = styled.div`
     min-width: 60px;
     justify-self: start;
     margin-top: 4px;
+    display: none;
   }
 `;
 
-const MobileFilterDropdown = styled.select`
-  display: none;
-
-  @media (max-width: 640px) {
-    display: block;
-    width: 100%;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    border: 1px solid ${(props) => props.theme.inputBorder};
-    background-color: ${(props) => props.theme.cardBg};
-    color: ${(props) => props.theme.text};
-    font-size: 16px;
-    font-family: inherit;
-
-    &:focus {
-      outline: none;
-      border-color: ${(props) => props.theme.buttonBg};
-    }
-  }
-`;
-
-const MobileFilterOption = styled.option`
-  background-color: ${(props) => props.theme.cardBg};
-  color: ${(props) => props.theme.text};
-  padding: 10px;
-`;
-
-// getBadgeColors funksiyasini yangilash
-const getBadgeColors = (status) => {
-  if (status === "approved")
-    return { bg: "#d1fae5", text: "#059669", label: "Tasdiqlangan" };
-  if (status === "pending")
-    return { bg: "#fef3c7", text: "#d97706", label: "Kutilmoqda" };
-  if (status === "rejected")
-    return { bg: "#fee2e2", text: "#dc2626", label: "Rad etilgan" };
-  return { bg: "#f3f4f6", text: "#374151", label: "Noma'lum" };
-};
-
-// getStatusFromData funksiyasini yangilash (agar kerak bo'lsa)
-const getStatusFromData = (item) => {
-  if (item.status === "approved") return "completed";
-  if (item.status === "pending") return "pending_review";
-  return "not_submitted";
-};
+const Count = styled.div``;
 
 export default function StudentDetail({ isDark = false }) {
+  const { id } = useParams();
+  const studentId = id;
+
   const theme = isDark ? darkTheme : lightTheme;
   const navigate = useNavigate();
-  const { id } = useParams();
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [practiceDays, setPracticeDays] = useState([]);
 
-  const [filteredData, setFilteredData] = useState(practiceDays);
-  const [studentInfo, setStudentInfo] = useState(null);
+  const [day, setDay] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const filterPracticeDays = () => {
-      if (!practiceDays || !Array.isArray(practiceDays)) {
-        setFilteredData([]);
-        return;
-      }
+    if (!studentId) return;
+    let aborded = false;
+    const controller = new AbortController();
 
-      if (activeFilter === "all") {
-        setFilteredData(practiceDays);
-      } else {
-        const filtered = practiceDays.filter((item) => {
-          // API'dan kelgan statuslarni filter statuslariga moslashtirish
-          if (activeFilter === "completed" && item.status === "approved")
-            return true;
-          if (activeFilter === "pending_review" && item.status === "pending")
-            return true;
-          if (activeFilter === "not_submitted" && item.status === "rejected")
-            return true;
-          return false;
-        });
-        setFilteredData(filtered);
-      }
-    };
-
-    filterPracticeDays();
-  }, [activeFilter, practiceDays]);
-  const handleStatClick = (status) => {
-    if (activeFilter === status) {
-      setActiveFilter("all");
-    } else {
-      setActiveFilter(status);
-    }
-  };
-
-  const handleMobileFilterChange = (event) => {
-    setActiveFilter(event.target.value);
-  };
-
-  // practiceDaysData o'rniga haqiqiy practiceDays dan statistikani hisoblash
-  const calculateStats = () => {
-    if (!practiceDays || !Array.isArray(practiceDays)) {
-      return {
-        completed: 0,
-        pending_review: 0,
-        not_submitted: 0,
-        all: 0,
-      };
-    }
-
-    const stats = {
-      completed: practiceDays.filter((day) => day.status === "approved").length,
-      pending_review: practiceDays.filter((day) => day.status === "pending")
-        .length,
-      not_submitted: practiceDays.filter((day) => day.status === "rejected")
-        .length,
-      all: practiceDays.length,
-    };
-
-    return stats;
-  };
-
-  const statusCounts = calculateStats();
-  useEffect(() => {
-    const fetchStudentData = async () => {
+    async function load() {
+      setLoading(true);
+      setError(null);
       try {
-        // Student ma'lumotlarini olish
-        const data = await api.getUserById(id);
-        console.log("Student data:", data); // Konsolda ko'rish uchun
-        setStudentInfo(data);
-
-        // Agar student ma'lumotlarida practice_days bo'lsa
-        if (data.practice_days && Array.isArray(data.practice_days)) {
-          setPracticeDays(data.practice_days);
-        } else {
-          setPracticeDays([]);
-        }
+        const data = await api.getUserById(studentId, {
+          signal: controller.signal,
+        });
+        if (!aborded) setDay(data);
       } catch (err) {
-        console.error("Talaba ma'lumotlarini olishda xato:", err);
-        setError("Talaba ma'lumotlarini yuklashda xato yuz berdi.");
+        if (err.name === "AbortError") return;
+        if (!aborded) setError(err.message || String(err));
       } finally {
-        setLoading(false);
+        if (!aborded) setLoading(false);
       }
-    };
-
-    if (id) {
-      fetchStudentData();
     }
-  }, [id]);
+    load();
+    return () => {
+      aborded = true;
+      controller.abort();
+    };
+  }, [studentId]);
 
-  if (loading) {
-    return (
-      <DashboardContainer>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "200px",
-          }}
-        >
-          Yuklanmoqda...
-        </div>
-      </DashboardContainer>
-    );
-  }
+  const getStatusColors = (status) => {
+    switch (status) {
+      case "success":
+        return {
+          badge: "#10b981",
+          text: "#d1fae5",
+          icon: "✓",
+          cursor: "pointer",
+        };
+      case "no_permission":
+        return {
+          badge: "#6b7280",
+          text: "#f3f4f6",
+          icon: <FaEyeSlash />,
+          cursor: "not-allowed",
+        };
+      case "pending":
+        return {
+          badge: "#f59e0b",
+          text: "#fef3c7",
+          icon: "!",
+          cursor: "not-allowed",
+        };
+      case "rejected":
+        return {
+          badge: "#ef4444",
+          text: "#fff",
+          icon: "X",
+          cursor: "not-allowed",
+        };
+      default:
+        return {
+          badge: "#6b7280",
+          text: "#e5e7eb",
+          icon: <FaEyeSlash />,
+          cursor: "not-allowed",
+        };
+    }
+  };
 
-  if (error) {
-    return (
-      <DashboardContainer>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "200px",
-            color: "#ef4444",
-          }}
-        >
-          {error}
-        </div>
-      </DashboardContainer>
-    );
-  }
+  // render
+  if (!studentId) return <div className="p-4">No id provided .</div>;
+  if (loading) return <div className="p-4">Loading . .</div>;
+  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (!day) return <div className="p-4">No data found for id: {studentId}</div>;
 
-  if (!studentInfo) {
-    return (
-      <DashboardContainer>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "200px",
-          }}
-        >
-          Talaba ma'lumotlari topilmadi
-        </div>
-      </DashboardContainer>
-    );
-  }
   return (
     <DashboardContainer>
-      {/* Mobile Filter Dropdown */}
-      <MobileFilterDropdown
-        value={activeFilter}
-        onChange={handleMobileFilterChange}
-      >
-        <MobileFilterOption value="all">Barchasi</MobileFilterOption>
-        <MobileFilterOption value="completed">Tasdiqlangan</MobileFilterOption>
-        <MobileFilterOption value="pending_review">
-          Ko'rib chiqilmoqda
-        </MobileFilterOption>
-        <MobileFilterOption value="not_submitted">
-          Topshirilmagan
-        </MobileFilterOption>
-      </MobileFilterDropdown>
-
-      <StatsGrid>
-        <StatCard
-          onClick={() => handleStatClick("completed")}
-          style={{
-            cursor: "pointer",
-            border: activeFilter === "completed" ? `2px solid #10b981` : "none",
-            transform:
-              activeFilter === "completed" ? "translateY(-2px)" : "none",
-            boxShadow:
-              activeFilter === "completed"
-                ? "0 4px 12px rgba(16, 185, 129, 0.3)"
-                : "0 1px 3px rgba(0, 0, 0, 0.1)",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Tasdiqlangan</StatLabel>
-              <StatIcon bgColor="#10b981">
-                <FaCalendarCheck />
-              </StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#10b98134" numberColor="#10b981">
-                {statusCounts.completed}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-
-        <StatCard
-          onClick={() => handleStatClick("pending_review")}
-          style={{
-            cursor: "pointer",
-            border:
-              activeFilter === "pending_review" ? `2px solid #f59e0b` : "none",
-            transform:
-              activeFilter === "pending_review" ? "translateY(-2px)" : "none",
-            boxShadow:
-              activeFilter === "pending_review"
-                ? "0 4px 12px rgba(245, 158, 11, 0.3)"
-                : "0 1px 3px rgba(0, 0, 0, 0.1)",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Kutilmoqda</StatLabel>
-              <StatIcon bgColor="#f59e0b">!</StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#f59f0b2c" numberColor="#f59e0b">
-                {statusCounts.pending_review}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-
-        <StatCard
-          onClick={() => handleStatClick("not_submitted")}
-          style={{
-            cursor: "pointer",
-            border:
-              activeFilter === "not_submitted" ? `2px solid #ef4444` : "none",
-            transform:
-              activeFilter === "not_submitted" ? "translateY(-2px)" : "none",
-            boxShadow:
-              activeFilter === "not_submitted"
-                ? "0 4px 12px rgba(239, 68, 68, 0.3)"
-                : "0 1px 3px rgba(0, 0, 0, 0.1)",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Rad etilgan</StatLabel>
-              <StatIcon bgColor="#ef4444">×</StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#ef44442c" numberColor="#ef4444">
-                {statusCounts.not_submitted}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-
-        <StatCard
-          onClick={() => handleStatClick("all")}
-          style={{
-            cursor: "pointer",
-            border: activeFilter === "all" ? `2px solid #3b82f6` : "none",
-            transform: activeFilter === "all" ? "translateY(-2px)" : "none",
-            boxShadow:
-              activeFilter === "all"
-                ? "0 4px 12px rgba(59, 130, 246, 0.3)"
-                : "0 1px 3px rgba(0, 0, 0, 0.1)",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Jami Kunlar</StatLabel>
-              <StatIcon bgColor="#3b82f6">
-                <FaCalendarDay />
-              </StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#3b82f62c" numberColor="#3b82f6">
-                {statusCounts.all}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-      </StatsGrid>
-
-      {/* Student Practice Days Section */}
       <PracticeDaysSection>
         <HeaderRow>
-          {studentInfo && (
-            <div>
-              <h2>
-                {studentInfo.first_name} {studentInfo.last_name}
-              </h2>
-              <div style={{ fontSize: "14px", opacity: 0.7, marginTop: "4px" }}>
-                {studentInfo.group?.group_number
-                  ? `Guruh: ${studentInfo.group.group_number}`
-                  : ""}
-              </div>
-            </div>
-          )}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              height: "100%",
-            }}
-          >
-            <Counter>{practiceDays.length} ta amaliyot</Counter>
-          </div>
+          <SectionTitle>
+            {day.first_name} {day.last_name}
+            <br />
+            <p style={{ fontSize: "16px", opacity: 0.7, margin: "0px" }}>
+              {day.attached_teacher.first_name} {day.attached_teacher.last_name}{" "}
+              || {day.group.group_number} - guruhi
+            </p>
+          </SectionTitle>
+          <Count>
+            <Counter>{day.practice_days?.length || 0} ta amalyot</Counter>
+          </Count>
         </HeaderRow>
 
-        {filteredData
-          .slice()
-          .reverse()
-          .map((day) => {
-            const statusColors = getBadgeColors(day.status);
-
-            return (
-              <TableRow key={day.id} to={`/student/${id}/day/${day.id}`}>
-                <TableCell>
-                  <CellIcon
-                    style={{
-                      backgroundColor: statusColors.bg,
-                      color: statusColors.text,
-                    }}
-                  >
-                    {day.status === "approved"
-                      ? "✓"
-                      : day.status === "pending"
-                      ? "!"
-                      : day.status === "rejected"
-                      ? "×"
-                      : "?"}
-                  </CellIcon>
+        {day.practice_days?.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 20px",
+              color: theme.text,
+              opacity: 0.7,
+            }}
+          >
+            <FaUserGraduate
+              style={{ fontSize: "48px", marginBottom: "16px" }}
+            />
+            <p>Hozircha talabalar mavjud emas</p>
+          </div>
+        ) : (
+          day.practice_days.map((prc) => (
+            <TableRow
+              key={prc.id}
+              onClick={() => navigate(`/student/practise/${prc.id}`)}
+              style={{ cursor: getStatusColors(prc.status).cursor }}
+            >
+              <TableCell>
+                <CellIcon
+                  badgeColor={getStatusColors(prc.status).badge}
+                  textColor={getStatusColors(prc.status).text}
+                >
+                  {getStatusColors(prc.status).icon}
+                </CellIcon>
+                <CellContent>
+                  <CellIconWrapper>
+                    <PiStudentBold />
+                    <CellLabel>Mas'ul Shaxs</CellLabel>
+                  </CellIconWrapper>
+                  <CellValue>{prc.duty_name}</CellValue>
+                </CellContent>
+              </TableCell>
+              <TableCell>
+                <CellContent>
+                  <CellIconWrapper>
+                    <FaLocationDot />
+                    <CellLabel>Joylashuv</CellLabel>
+                  </CellIconWrapper>
+                  <CellValue>{prc.address}</CellValue>
+                </CellContent>
+              </TableCell>
+              <TableCell>
+                <CellContent>
+                  <CellIconWrapper>
+                    <MdAccessTime />
+                    <CellLabel>Boshlanish vaqti</CellLabel>
+                  </CellIconWrapper>
+                  <CellValue>{prc.start_time}</CellValue>
+                </CellContent>
+              </TableCell>
+              <TableCell>
+                <CellContent>
+                  <CellIconWrapper>
+                    <MdAccessTime />
+                    <CellLabel>Tugash vaqti</CellLabel>
+                  </CellIconWrapper>
+                  <CellValue>{prc.end_time}</CellValue>
+                </CellContent>
+              </TableCell>
+              <MobileTable>
+                {" "}
+                <CellIcon bgColor={prc.iconBg}>{prc.icon}</CellIcon>
+                <MobileTableCell>
                   <CellContent>
                     <CellIconWrapper>
-                      <FaMapMarkerAlt />
-                      <CellLabel>Tashkilot</CellLabel>
+                      <FaLocationDot />
+                      <CellLabel>Location</CellLabel>
                     </CellIconWrapper>
-                    <CellValue>{day.org_name || "Ko'rsatilmagan"}</CellValue>
+                    <CellValue>{prc.address}</CellValue>
                   </CellContent>
-                </TableCell>
-
-                <TableCell>
-                  <CellContent>
-                    <CellIconWrapper>
-                      <FaCalendarDay />
-                      <CellLabel>Sana</CellLabel>
-                    </CellIconWrapper>
-                    <CellValue>
-                      {day.date
-                        ? new Date(day.date).toLocaleDateString("uz-UZ")
-                        : "Ko'rsatilmagan"}
-                    </CellValue>
-                  </CellContent>
-                </TableCell>
-
-                <TableCell>
-                  <CellContent>
-                    <CellIconWrapper>
-                      <FaUserGraduate />
-                      <CellLabel>Mas'ul shaxs</CellLabel>
-                    </CellIconWrapper>
-                    <CellValue>{day.duty_name || "Ko'rsatilmagan"}</CellValue>
-                  </CellContent>
-                </TableCell>
-
-                <TableCell>
-                  <CellContent>
-                    <CellIconWrapper>
-                      <FaCalendarCheck />
-                      <CellLabel>Holat</CellLabel>
-                    </CellIconWrapper>
-                    <CellValue>
-                      <ScoreBadge
-                        style={{
-                          backgroundColor: statusColors.bg,
-                          color: statusColors.text,
-                        }}
-                      >
-                        {statusColors.label}
-                      </ScoreBadge>
-                    </CellValue>
-                  </CellContent>
-                </TableCell>
-
-                {/* Mobile view */}
-                <MobileTable>
-                  <CellIcon
-                    style={{
-                      backgroundColor: statusColors.bg,
-                      color: statusColors.text,
-                    }}
-                  >
-                    {day.status === "approved"
-                      ? "✓"
-                      : day.status === "pending"
-                      ? "!"
-                      : day.status === "rejected"
-                      ? "×"
-                      : "?"}
-                  </CellIcon>{" "}
-                  <MobileTableCell>
-                    <CellContent>
-                      <CellIconWrapper>
-                        <FaMapMarkerAlt />
-                        <CellLabel>Tashkilot</CellLabel>
-                      </CellIconWrapper>
-                      <CellValue>{day.org_name || "Ko'rsatilmagan"}</CellValue>
-                    </CellContent>
-                  </MobileTableCell>
-                  <MobileTableCell>
-                    <CellContent>
-                      <CellIconWrapper>
-                        <FaMapMarkerAlt />
-                        <CellLabel>Sana</CellLabel>
-                      </CellIconWrapper>
-                      <CellValue>
-                        {" "}
-                        {day.date
-                          ? new Date(day.date).toLocaleDateString("uz-UZ")
-                          : "Ko'rsatilmagan"}
-                      </CellValue>
-                    </CellContent>
-                  </MobileTableCell>
-                </MobileTable>
-              </TableRow>
-            );
-          })}
+                </MobileTableCell>
+                <ScoreBadge
+                  style={{ display: "flex", justifyContent: "center" }}
+                  badgeColor={getStatusColors(prc.status).badge}
+                  textColor={getStatusColors(prc.status).text}
+                >
+                  {prc.date}
+                </ScoreBadge>
+              </MobileTable>
+              <ScoreBadge
+                badgeColor={getStatusColors(prc.status).badge}
+                textColor={getStatusColors(prc.status).text}
+              >
+                {prc.date}
+              </ScoreBadge>
+            </TableRow>
+          ))
+        )}
       </PracticeDaysSection>
     </DashboardContainer>
   );

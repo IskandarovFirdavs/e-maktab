@@ -5,28 +5,6 @@ import { FaUniversity, FaUsers } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 
-const slideIn = keyframes`
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-`;
-
-const slideOut = keyframes`
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-`;
-
 const colorFlow = keyframes`
   0% {
     background-position: -100% 0%;
@@ -36,49 +14,6 @@ const colorFlow = keyframes`
   }
   100% {
     background-position: -100% 0%;
-  }
-`;
-
-const Notification = styled.div`
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #10b981;
-  color: white;
-  padding: 16px 24px;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-  z-index: 1000;
-  animation: ${slideIn} 0.3s ease-out;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: "Poppins", sans-serif;
-  font-weight: 500;
-
-  &.closing {
-    animation: ${slideOut} 0.3s ease-in;
-  }
-
-  &::before {
-    content: "✓";
-    background: white;
-    color: #10b981;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-  }
-
-  @media (max-width: 480px) {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    padding: 12px 16px;
   }
 `;
 
@@ -178,10 +113,7 @@ const StatIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${(props) => props.bg};
-  color: white;
   font-size: 24px;
-
   @media (max-width: 1200px) {
     width: 45px;
     height: 45px;
@@ -421,33 +353,6 @@ const CellValue = styled.span`
   }
 `;
 
-const MobileFilterDropdown = styled.select`
-  display: none;
-
-  @media (max-width: 640px) {
-    display: block;
-    width: 100%;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    border: 1px solid ${(props) => props.theme.inputBorder};
-    background-color: ${(props) => props.theme.cardBg};
-    color: ${(props) => props.theme.text};
-    font-size: 16px;
-    font-family: inherit;
-
-    &:focus {
-      outline: none;
-      border-color: ${(props) => props.theme.buttonBg};
-    }
-  }
-`;
-
-const MobileFilterOption = styled.option`
-  background-color: ${(props) => props.theme.cardBg};
-  color: ${(props) => props.theme.text};
-  padding: 10px;
-`;
 const CellContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -458,76 +363,6 @@ const CellContent = styled.div`
     width: 100%;
   }
 `;
-// Mock data for faculties
-const facultiesData = [
-  {
-    id: 1,
-    name: "Kompyuter Texnologiyalari Fakulteti",
-    code: "KTF",
-    dean: "Prof. Toshmatov A.",
-    departments: 8,
-    students: 2850,
-    teachers: 145,
-    budget: "12.5 mlrd",
-    performance: 94,
-    status: "active",
-    icon: "💻",
-    iconColor: "#3B82F6",
-    established: "2010",
-  },
-  {
-    id: 2,
-    name: "Iqtisodiyot va Menejment Fakulteti",
-    code: "IMF",
-    dean: "Prof. Qodirova M.",
-    departments: 6,
-    students: 3200,
-    teachers: 132,
-    budget: "9.8 mlrd",
-    performance: 88,
-    status: "active",
-    icon: "📊",
-    iconColor: "#10B981",
-    established: "2008",
-  },
-  {
-    id: 3,
-    name: "Tabiiy Fanlar Fakulteti",
-    code: "TFF",
-    dean: "Prof. Yusupov S.",
-    departments: 7,
-    students: 1850,
-    teachers: 118,
-    budget: "7.2 mlrd",
-    performance: 82,
-    status: "active",
-    icon: "🔬",
-    iconColor: "#F59E0B",
-    established: "2012",
-  },
-  {
-    id: 4,
-    name: "Gumanitar Fanlar Fakulteti",
-    code: "GFF",
-    dean: "Prof. Karimova Z.",
-    departments: 5,
-    students: 2100,
-    teachers: 98,
-    budget: "6.5 mlrd",
-    performance: 79,
-    status: "active",
-    icon: "📚",
-    iconColor: "#EF4444",
-    established: "2005",
-  },
-];
-
-const getPerformanceColors = (rate) => {
-  if (rate >= 90) return { bg: "#d1fae5", text: "#059669" };
-  if (rate >= 80) return { bg: "#fef3c7", text: "#d97706" };
-  if (rate >= 70) return { bg: "#fee2e2", text: "#dc2626" };
-  return { bg: "#f3f4f6", text: "#374151" };
-};
 
 export default function Faculties({ isDark = false, onThemeChange }) {
   const theme = isDark ? darkTheme : lightTheme;
@@ -570,9 +405,6 @@ export default function Faculties({ isDark = false, onThemeChange }) {
     fetchData();
   }, [navigate]);
 
-  const handleMobileFilterChange = (event) => {
-    setActiveFilter(event.target.value);
-  };
 
   if (loading) {
     return (
@@ -615,7 +447,7 @@ export default function Faculties({ isDark = false, onThemeChange }) {
 
       <StatsGrid>
         <StatCard>
-          <StatIcon $bgColor="#3B82F6">
+          <StatIcon>
             <FaUniversity />
           </StatIcon>
           <StatContent>
@@ -626,7 +458,7 @@ export default function Faculties({ isDark = false, onThemeChange }) {
         </StatCard>
 
         <StatCard>
-          <StatIcon $bgColor="#10B981">
+          <StatIcon>
             <FaUsers />
           </StatIcon>
           <StatContent>
@@ -667,7 +499,7 @@ export default function Faculties({ isDark = false, onThemeChange }) {
             <TableRow
               key={f.id}
               style={{ cursor: "pointer" }}
-              onClick={() => navigate(`/departments/${f.id}`)}
+              onClick={() => navigate(`/faculty/${f.id}`)}
             >
               <TableCell>
                 <CellContent>

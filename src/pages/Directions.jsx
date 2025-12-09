@@ -1,38 +1,9 @@
 import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import { lightTheme, darkTheme } from "../styles/theme.js";
-import {
-  FaDirections,
-  FaUsers,
-  FaUserGraduate,
-  FaSchool,
-  FaChevronDown,
-  FaChevronRight,
-} from "react-icons/fa";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { FaBuilding } from "react-icons/fa";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api.js";
-
-const slideIn = keyframes`
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-`;
-
-const slideOut = keyframes`
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-`;
 
 const colorFlow = keyframes`
   0% {
@@ -86,119 +57,29 @@ const DashboardContainer = styled.div`
   }
 `;
 
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 70px;
-  margin-bottom: 30px;
-
-  @media (max-width: 1200px) {
-    gap: 40px;
-  }
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-  }
-
-  @media (max-width: 640px) {
-    display: none;
-  }
-`;
-
-const StatCard = styled.div`
-  background-color: ${(p) => p.theme.statCard};
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 1px 3px ${(props) => props.theme.cardShadow};
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px ${(props) => props.theme.cardShadow};
-  }
-
-  @media (max-width: 1200px) {
-    padding: 15px;
-    gap: 12px;
-  }
-
-  @media (max-width: 1024px) {
-    padding: 18px;
-  }
-`;
-
-const StatIcon = styled.div`
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
+const CellIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${(props) => props.bgColor};
-  color: ${(p) => p.theme.statCard};
-
-  @media (max-width: 1200px) {
-    width: 18px;
-    height: 18px;
-    font-size: 12px;
-  }
-`;
-
-const StatContent = styled.div`
-  flex: 1;
-`;
-
-const SmallStat = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 12px;
-`;
-
-const Statdiv = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const StatLabel = styled.p`
-  margin: 0;
   font-size: 18px;
-  opacity: 0.7;
-  font-weight: 600;
-  color: ${(p) => p.theme.text};
+  background-color: ${(props) => props.bgColor || "#f59e0b"};
+  color: white;
+  flex-shrink: 0;
+  font-weight: bold;
 
-  @media (max-width: 1200px) {
+  @media (max-width: 768px) {
+    width: 35px;
+    height: 35px;
     font-size: 16px;
   }
 
-  @media (max-width: 1024px) {
-    font-size: 15px;
-  }
-`;
-
-const StatNumber = styled.p`
-  margin: 5px 0 0 0;
-  font-size: 24px;
-  font-weight: bold;
-  width: 35%;
-  text-align: center;
-  border-radius: 10px;
-  color: ${(props) => props.numberColor};
-  background-color: ${(props) => props.bgColor};
-
-  @media (max-width: 1200px) {
-    font-size: 20px;
-    width: 40%;
-  }
-
-  @media (max-width: 1024px) {
-    font-size: 22px;
+  @media (max-width: 480px) {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
   }
 `;
 
@@ -249,52 +130,6 @@ const HeaderRow = styled.div`
     flex-direction: column;
     gap: 12px;
     align-items: flex-start;
-  }
-`;
-
-const Button = styled.button`
-  background-color: ${(props) => props.theme.buttonBg};
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    transition: left 0.5s ease;
-  }
-
-  &:hover::before {
-    left: 100%;
-  }
-
-  &:hover {
-    background-color: ${(props) => props.theme.buttonHover};
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px ${(props) => props.theme.buttonBg}40;
-  }
-
-  @media (max-width: 480px) {
-    padding: 10px 16px;
-    font-size: 14px;
   }
 `;
 
@@ -450,187 +285,128 @@ const ChevronIcon = styled.div`
   opacity: 0.7;
 `;
 
-// Mock data for Head of Department
-const hodData = {
-  directions: [
-    {
-      id: 1,
-      name: "Axborot Texnologiyalari",
-      code: "AT",
-      totalGroups: 3,
-      totalStudents: 75,
-      groups: [
-        {
-          id: 1,
-          name: "941-22",
-          studentCount: 25,
-          activePractices: 18,
-          completedPractices: 7,
-        },
-        {
-          id: 2,
-          name: "942-22",
-          studentCount: 25,
-          activePractices: 22,
-          completedPractices: 3,
-        },
-        {
-          id: 3,
-          name: "943-22",
-          studentCount: 25,
-          activePractices: 15,
-          completedPractices: 10,
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Kompyuter Muhandisligi",
-      code: "KM",
-      totalGroups: 2,
-      totalStudents: 50,
-      groups: [
-        {
-          id: 4,
-          name: "951-22",
-          studentCount: 25,
-          activePractices: 20,
-          completedPractices: 5,
-        },
-        {
-          id: 5,
-          name: "952-22",
-          studentCount: 25,
-          activePractices: 12,
-          completedPractices: 13,
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: "Dasturiy Injiniring",
-      code: "DI",
-      totalGroups: 1,
-      totalStudents: 25,
-      groups: [
-        {
-          id: 6,
-          name: "961-22",
-          studentCount: 25,
-          activePractices: 8,
-          completedPractices: 17,
-        },
-      ],
-    },
-  ],
-};
+const CellContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 
-// Calculate stats from data
-const calculateStats = (directions) => {
-  let totalDirections = directions.length;
-  let totalGroups = 0;
-  let totalStudents = 0;
-  let totalPractices = 0;
+  @media (max-width: 480px) {
+    gap: 2px;
+    width: 100%;
+  }
+`;
 
-  directions.forEach((direction) => {
-    totalGroups += direction.totalGroups;
-    totalStudents += direction.totalStudents;
-    direction.groups.forEach((group) => {
-      totalPractices += group.activePractices + group.completedPractices;
-    });
-  });
+const CellLabel = styled.span`
+  font-size: 13px;
+  opacity: 0.7;
+  display: block;
+  font-weight: 500;
 
-  return {
-    totalDirections,
-    totalGroups,
-    totalStudents,
-    totalPractices,
-  };
-};
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 11px;
+  }
+`;
+
+const CellValue = styled.span`
+  font-weight: 600;
+  display: block;
+  font-size: 15px;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+    word-break: break-word;
+  }
+`;
+
+const TableCell = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: ${(props) => props.theme.text};
+  padding: 8px 0;
+
+  @media (max-width: 860px) {
+    gap: 10px;
+    font-size: 14px;
+    display: none;
+  }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+    font-size: 13px;
+  }
+`;
 
 export default function Directions({ isDark = false }) {
+  const { id } = useParams();
+  const departmentId = id;
+
   const theme = isDark ? darkTheme : lightTheme;
   const navigate = useNavigate();
-  const location = useLocation();
-  const { departmentId } = useParams();
-  const [openDirections, setOpenDirections] = useState({});
-  const stats = calculateStats(hodData.directions);
-  const [directions, setDirections] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const toggleDirection = (directionId) => {
-    setOpenDirections((prev) => ({
-      ...prev,
-      [directionId]: !prev[directionId],
-    }));
-  };
-
-  const handleGroupClick = (groupId) => {
-    navigate(`/groups/${groupId}`);
-  };
+  const [department, setDepartment] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const data = await api.getDirections();
-        setDirections(data); // API dan kelgan arrayni state ga o'rnatish
-      } catch (err) {
-        console.error("Departmentlarni olishda xato:", err);
-        setError("Departmentlarni yuklashda xato yuz berdi.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDepartments();
+    const savedTheme = localStorage.getItem("preferredTheme");
+    if (savedTheme === "dark" && !isDark && onThemeChange) {
+      onThemeChange(true);
+    }
   }, []);
 
-  if (loading) return <p>Yuklanmoqda...</p>;
-  if (error) return <p>{error}</p>;
+  useEffect(() => {
+    localStorage.setItem("preferredTheme", isDark ? "dark" : "light");
+  }, [isDark]);
+
+  useEffect(() => {
+    if (!departmentId) return;
+    let aborded = false;
+    const controller = new AbortController();
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await api.getDepartment(departmentId, {
+          signal: controller.signal,
+        });
+        if (!aborded) setDepartment(data);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        if (!aborded) setError(err.message || String(err));
+      } finally {
+        if (!aborded) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      aborded = true;
+      controller.abort();
+    };
+  }, [departmentId]);
+
+  // render
+  if (!departmentId) return <div className="p-4">No id provided .</div>;
+  if (loading) return <div className="p-4">Loading . .</div>;
+  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (!department)
+    return <div className="p-4">No data found for id: {departmentId}</div>;
+
   return (
     <DashboardContainer>
-      <StatsGrid>
-        <StatCard>
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Yo'nalishlar</StatLabel>
-              <StatIcon bgColor="#8b5cf6">
-                <FaDirections />
-              </StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#8b5cf634" numberColor="#8b5cf6">
-                {directions.length}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-
-        <StatCard>
-          <StatContent>
-            <Statdiv>
-              <StatLabel>Guruhlar</StatLabel>
-              <StatIcon bgColor="#3b82f6">
-                <FaUsers />
-              </StatIcon>
-            </Statdiv>
-            <SmallStat>
-              <StatNumber bgColor="#3b82f634" numberColor="#3b82f6">
-                {directions.reduce(
-                  (sum, f) => sum + (f.groups?.length || 0),
-                  0
-                )}
-              </StatNumber>
-            </SmallStat>
-          </StatContent>
-        </StatCard>
-      </StatsGrid>
-
       {/* Directions Section */}
       <DirectionsSection>
         <HeaderRow>
-          <SectionTitle>YO'NALISHLAR VA GURUHLAR</SectionTitle>
+          <SectionTitle>{department.abbr} kafedra yo'nalishlari</SectionTitle>
           <div
             style={{
               display: "flex",
@@ -639,46 +415,31 @@ export default function Directions({ isDark = false }) {
               height: "100%",
             }}
           >
-            <Counter>{hodData.directions.length} ta yo'nalish</Counter>
+            <Counter>{department.directions?.length || 0} ta yo'nalish</Counter>
           </div>
         </HeaderRow>
 
-        {directions.map((direction) => (
-          <DirectionRow key={direction.id}>
-            <DirectionHeader onClick={() => toggleDirection(direction.id)}>
-              <DirectionInfo>
-                <DirectionIcon>
-                  <FaDirections />
-                </DirectionIcon>
-                <DirectionContent>
-                  <DirectionName>
-                    {direction.name} ({direction.abbr})
-                  </DirectionName>
-                </DirectionContent>
-              </DirectionInfo>
-              <ChevronIcon isOpen={openDirections[direction.id]}>
-                <FaChevronDown />
-              </ChevronIcon>
-            </DirectionHeader>
+        {department.directions?.length === 0 && (
+          <div style={{ padding: "20px", color: theme.text }}>
+            Hozircha yo'nalishlar mavjud emas.
+          </div>
+        )}
+        {department.directions?.map((dir) => (
+          <DirectionRow
+            key={dir.id}
+            onClick={() => navigate(`/direction/${dir.id}`)}
+          >
+            <TableCell>
+              <CellIcon bgColor="#3B82F6">
+                <FaBuilding />
+              </CellIcon>
 
-            <GroupsContainer isOpen={openDirections[direction.id]}>
-              {direction.groups.map((group) => (
-                <GroupRow
-                  key={group.id}
-                  onClick={() => handleGroupClick(group.id)}
-                >
-                  <GroupIcon>
-                    <FaUsers />
-                  </GroupIcon>
-                  <GroupContent>
-                    <GroupName>{group.group_number} guruhi</GroupName>
-                  </GroupContent>
-                  <ChevronIcon isOpen={false}>
-                    <FaChevronRight />
-                  </ChevronIcon>
-                </GroupRow>
-              ))}
-            </GroupsContainer>
+              <CellContent>
+                <CellLabel>Yo'nalish</CellLabel>
+                <CellValue>{dir.name}</CellValue>{" "}
+                <CellLabel>{dir.abbr}</CellLabel>
+              </CellContent>
+            </TableCell>
           </DirectionRow>
         ))}
       </DirectionsSection>

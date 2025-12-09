@@ -17,6 +17,7 @@ import StudentPractiseCreate from "./pages/StudentPractiseCreate.jsx";
 import Students from "./pages/Students.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Login from "./auth/Login.jsx";
+import Groups from "./pages/Groups.jsx";
 
 function AppContent() {
   const [dark, setDark] = useState(() => {
@@ -47,12 +48,11 @@ function AppContent() {
             element={<StudentPractiseCreate />}
           />
           <Route path="/student/practise/:id" element={<StudentPractise />} />
-          <Route path="/students/:id" element={<Students />} />
           <Route path="/student/:id/day/:dayId" element={<PractiseDetail />} />
 
           {/* ID bilan yo'llar */}
           <Route
-            path="/departments/:id"
+            path="/faculty/:id"
             element={
               <PrivateRoute>
                 <Departments />
@@ -61,10 +61,18 @@ function AppContent() {
           />
 
           <Route
-            path="/directions/:departmentId"
+            path="/department/:id"
             element={
               <PrivateRoute>
                 <Directions />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/direction/:id"
+            element={
+              <PrivateRoute>
+                <Groups />
               </PrivateRoute>
             }
           />
@@ -79,7 +87,7 @@ function AppContent() {
           />
 
           <Route
-            path="/groups/:directionId"
+            path="/group/:id"
             element={
               <PrivateRoute>
                 <Students />
