@@ -348,6 +348,17 @@ const ScoreBadge = styled.div`
 
 const Count = styled.div``;
 
+const DaysMap = styled.div`
+  text-align: center;
+  padding: 40px 20px;
+  color: ${(props) => props.theme.text};
+  opacity: 0.7;
+  svg {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+`;
+
 export default function StudentDetail({ isDark = false }) {
   const { id } = useParams();
   const studentId = id;
@@ -450,25 +461,20 @@ export default function StudentDetail({ isDark = false }) {
         </HeaderRow>
 
         {day.practice_days?.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "40px 20px",
-              color: theme.text,
-              opacity: 0.7,
-            }}
-          >
-            <FaUserGraduate
-              style={{ fontSize: "48px", marginBottom: "16px" }}
-            />
+          <DaysMap>
+            <FaUserGraduate />
             <p>Hozircha amaliyotlar mavjud emas</p>
-          </div>
+          </DaysMap>
         ) : (
           day.practice_days.map((prc) => (
             <TableRow
               key={prc.id}
-              onClick={() => navigate(`/student/practise/${prc.id}`)}
               style={{ cursor: getStatusColors(prc.status).cursor }}
+              to={`/student/practise/${prc.id}`}
+              onClick={(e) => {
+                if (getStatusColors(prc.status).cursor !== "pointer")
+                  e.preventDefault();
+              }}
             >
               <TableCell>
                 <CellIcon
