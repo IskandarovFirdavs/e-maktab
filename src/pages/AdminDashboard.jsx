@@ -1338,9 +1338,8 @@ export default function AdminDashboard() {
       .filter((user) => user && user.id && user.first_name)
       .map((user) => ({
         value: user.id,
-        label: `${user.first_name} ${user.last_name} (${
-          user.role || "no role"
-        })`,
+        label: `${user.first_name} ${user.last_name}`,
+        role: user.role, // 🔥 MUHIM
       }));
 
     const teacherOptions = Object.values(relatedData.users || {})
@@ -1443,14 +1442,14 @@ export default function AdminDashboard() {
           label: "Head",
           type: "select",
           required: true,
-          options: userOptions.filter((opt) => !opt.label.includes("student")),
+          options: userOptions.filter((u) => u.role === "dean"),
         },
         {
           name: "vice_id",
           label: "Vice Head",
           type: "select",
           required: false,
-          options: userOptions.filter((opt) => !opt.label.includes("student")),
+          options: userOptions.filter((u) => u.role === "deputy_dean"),
         },
       ],
       departments: [
@@ -1473,7 +1472,7 @@ export default function AdminDashboard() {
           label: "Head",
           type: "select",
           required: true,
-          options: userOptions.filter((opt) => !opt.label.includes("student")),
+          options: userOptions.filter((u) => u.role === "head_of_department"),
         },
       ],
       directions: [
