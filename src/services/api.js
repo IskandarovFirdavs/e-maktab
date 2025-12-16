@@ -413,7 +413,7 @@ class API {
   // REPORTS API
   // =============================================
 
-  // LIST MY REPORTS (student only)
+  // LIST MY REPORTS (student + admin only)
   async getMyReports() {
     return this.request("/practice/reports/");
   }

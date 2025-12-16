@@ -44,7 +44,7 @@ function AppContent() {
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/:id" element={<StudentDetail />} />
           <Route
-            path="/student/practise/create"
+            path="/student/practise/create/:practiceDayId"
             element={<StudentPractiseCreate />}
           />
           <Route path="/student/practise/:id" element={<StudentPractise />} />

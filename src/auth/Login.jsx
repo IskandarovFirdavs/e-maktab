@@ -6,6 +6,8 @@ import { Link, useNavigate } from "react-router-dom";
 import icon from "../../public/seticon.png";
 import darkicon from "../../public/Group.png";
 import api from "../services/api.js";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 // --- WRAPPER ---
 const Wrapper = styled.div`
   display: flex;
@@ -144,12 +146,28 @@ const Toggle = styled.img`
   }
 `;
 
+const PasswordWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const EyeIcon = styled.div`
+  position: absolute;
+  right: 12px;
+  top: 55%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: ${(p) => p.theme.inputText};
+  font-size: 20px;
+`;
+
 // --- LOGIN COMPONENT ---
 export default function Login({ dark, setDark }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -210,14 +228,22 @@ export default function Login({ dark, setDark }) {
               required
               disabled={loading}
             />
-            <Input
-              type="password"
-              placeholder="Parol"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
+            <PasswordWrapper>
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Parol"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                style={{ paddingRight: "45px" }}
+              />
+
+              <EyeIcon onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </EyeIcon>
+            </PasswordWrapper>
+
             <Button type="submit" disabled={loading}>
               {loading ? "Kirilmoqda..." : "Kirish"}
             </Button>

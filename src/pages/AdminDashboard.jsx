@@ -24,8 +24,12 @@ import {
   FaFilter,
   FaSync,
   FaCaretDown,
+  FaFileAlt,
+  FaDownload,
 } from "react-icons/fa";
 import api from "../services/api";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Modern gradient animation
 const gradientAnimation = keyframes`
@@ -372,7 +376,6 @@ const TableRow = styled.tr`
   }
 `;
 
-// Fix: Use $ prefix for transient prop
 const TableHeaderCell = styled.th.withConfig({
   shouldForwardProp: (prop) => prop !== "$sortable",
 })`
@@ -462,6 +465,17 @@ const IconButton = styled.button`
     }
   }
 
+  &.download {
+    background: #10b98110;
+    color: #10b981;
+
+    &:hover {
+      background: #10b981;
+      color: white;
+      transform: scale(1.05);
+    }
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -495,6 +509,24 @@ const StatusBadge = styled.span`
     background: #f59e0b20;
     color: #f59e0b;
     border: 1px solid #f59e0b40;
+  }
+
+  &.approved {
+    background: #10b98120;
+    color: #10b981;
+    border: 1px solid #10b98140;
+  }
+
+  &.rejected {
+    background: #ef444420;
+    color: #ef4444;
+    border: 1px solid #ef444440;
+  }
+
+  &.submitted {
+    background: #3b82f620;
+    color: #3b82f6;
+    border: 1px solid #3b82f640;
   }
 `;
 
@@ -627,7 +659,7 @@ const ModalContent = styled.div`
   border-radius: 16px;
   padding: 32px;
   width: 100%;
-  max-width: 500px;
+  max-width: 800px;
   max-height: 70vh;
   overflow-y: auto;
   animation: ${slideIn} 0.3s ease-out;
@@ -635,6 +667,7 @@ const ModalContent = styled.div`
 
   @media (max-width: 768px) {
     padding: 24px;
+    max-width: 95%;
   }
 `;
 
@@ -668,6 +701,66 @@ const ModalCloseButton = styled.button`
     color: ${(p) => p.theme.text};
     background: ${(p) => p.theme.border}40;
   }
+`;
+
+// Report Detail Components
+const ReportDetailContainer = styled.div`
+  padding: 20px 0;
+`;
+
+const ReportSection = styled.div`
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid ${(p) => p.theme.border}30;
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+`;
+
+const ReportSectionTitle = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${(p) => p.theme.primary};
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ReportField = styled.div`
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const ReportLabel = styled.span`
+  font-weight: 600;
+  color: ${(p) => p.theme.text}80;
+  min-width: 120px;
+`;
+
+const ReportValue = styled.span`
+  flex: 1;
+  color: ${(p) => p.theme.text};
+  line-height: 1.6;
+`;
+
+const ReportTextArea = styled.div`
+  background: ${(p) => p.theme.background};
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+  border: 1px solid ${(p) => p.theme.border}30;
+  white-space: pre-wrap;
+  line-height: 1.6;
 `;
 
 const FormGroup = styled.div`
@@ -868,7 +961,39 @@ const CACHE_KEYS = {
   directions: "directions_cache",
   groups: "groups_cache",
   practices: "practices_cache",
+  reports: "reports_cache",
 };
+
+export const MediaRow = styled.div`
+  width: 100%;
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`;
+
+export const MediaBox = styled.div`
+  flex: 1;
+  border: 1px solid ${({ theme }) => theme.border || "#ddd"};
+  border-radius: 8px;
+  padding: 10px;
+`;
+
+export const MediaLabel = styled.div`
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+`;
+
+export const ReportImage = styled.img`
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 6px;
+`;
 
 // Main Component
 export default function AdminDashboard() {
@@ -893,8 +1018,22 @@ export default function AdminDashboard() {
   const [relatedData, setRelatedData] = useState({});
   const [cacheTimestamp, setCacheTimestamp] = useState({});
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [showReportDetail, setShowReportDetail] = useState(false);
+  const [reportDetailLoading, setReportDetailLoading] = useState(false);
 
-  // Menu Items
+  function parseWKTPoint(wkt) {
+    if (!wkt) return null;
+
+    const point = wkt.split("POINT")[1];
+    if (!point) return null;
+
+    const [lng, lat] = point.replace(/[()]/g, "").trim().split(" ").map(Number);
+
+    return [lat, lng]; // Leaflet uchun
+  }
+
+  // Menu Items - Added reports
   const menuItems = [
     { id: "users", label: "Users", icon: <FaUser />, path: "/admin/users" },
     {
@@ -921,6 +1060,12 @@ export default function AdminDashboard() {
       label: "Practice Days",
       icon: <FaCalendarAlt />,
       path: "/admin/practices",
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: <FaFileAlt />,
+      path: "/admin/reports",
     },
   ];
 
@@ -1010,11 +1155,13 @@ export default function AdminDashboard() {
           case "practices":
             response = await api.getPracticeDays();
             break;
+          case "reports":
+            response = await api.getMyReports();
+            console.log(response);
+            break;
           default:
             response = [];
         }
-
-        console.log(`Fetched ${activeMenu}:`, response);
 
         if (Array.isArray(response)) {
           setData(response);
@@ -1039,8 +1186,25 @@ export default function AdminDashboard() {
   // Initial fetch and fetch related data
   useEffect(() => {
     fetchData();
-    fetchRelatedData();
+    if (activeMenu !== "reports") {
+      fetchRelatedData();
+    }
   }, [activeMenu, fetchData, fetchRelatedData]);
+
+  // Fetch report detail
+  const fetchReportDetail = useCallback(async (reportId) => {
+    setReportDetailLoading(true);
+    try {
+      const report = await api.getMyReport(reportId);
+      setSelectedReport(report);
+      setShowReportDetail(true);
+    } catch (err) {
+      setError(`Failed to fetch report details: ${err.message}`);
+      console.error("Fetch report detail error:", err);
+    } finally {
+      setReportDetailLoading(false);
+    }
+  }, []);
 
   // Handle create/update
   const handleSubmit = async (e) => {
@@ -1073,6 +1237,9 @@ export default function AdminDashboard() {
           case "practices":
             await api.updatePracticeDay(editingItem.id, formData);
             break;
+          case "reports":
+            // Reports are read-only
+            break;
         }
         setSuccess(`${getFormTemplate()?.title} updated successfully!`);
       } else {
@@ -1096,6 +1263,9 @@ export default function AdminDashboard() {
             break;
           case "practices":
             await api.createPracticeDay(formData);
+            break;
+          case "reports":
+            // Reports are read-only
             break;
         }
         setSuccess(`${getFormTemplate()?.title} created successfully!`);
@@ -1143,6 +1313,9 @@ export default function AdminDashboard() {
         case "practices":
           await api.deletePracticeDay(deleteItemId);
           break;
+        case "reports":
+          // Reports are read-only, no delete
+          break;
       }
 
       setSuccess(`${getFormTemplate()?.title} deleted successfully!`);
@@ -1162,6 +1335,7 @@ export default function AdminDashboard() {
 
   // Handle edit
   const handleEdit = (item) => {
+    if (activeMenu === "reports") return; // Reports are read-only
     setEditingItem(item);
     setFormData(item);
     setShowModal(true);
@@ -1169,9 +1343,60 @@ export default function AdminDashboard() {
 
   // Handle add new
   const handleAddNew = () => {
+    if (activeMenu === "reports") return; // Reports are read-only
     setEditingItem(null);
     setFormData({});
     setShowModal(true);
+  };
+
+  // Handle view report
+  const handleViewReport = (reportId) => {
+    fetchReportDetail(reportId);
+  };
+
+  // Handle download report
+  const handleDownloadReport = (report) => {
+    const reportText = `
+STUDENT INFORMATION
+===================
+Student ID: ${report.student?.id || "N/A"}
+First Name: ${report.student?.first_name || "N/A"}
+Last Name: ${report.student?.last_name || "N/A"}
+Group: ${report.student?.group || "N/A"}
+Direction: ${report.student?.direction || "N/A"}
+
+REPORT DETAILS
+==============
+Practise Day ID: ${report.practice_day || "N/A"}
+Text:
+${report.text || "N/A"}
+
+Created At: ${
+      report.created_at ? new Date(report.created_at).toLocaleString() : "N/A"
+    }
+${
+  report.updated_at
+    ? `Last Updated: ${new Date(report.updated_at).toLocaleString()}`
+    : ""
+}
+`;
+
+    const blob = new Blob([reportText.trim()], {
+      type: "text/plain;charset=utf-8",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = `report_${report.id || "unknown"}_${
+      report.student?.last_name || "student"
+    }.txt`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Handle input change
@@ -1192,6 +1417,7 @@ export default function AdminDashboard() {
       directions: { title: "Direction" },
       groups: { title: "Group" },
       practices: { title: "Practice Day" },
+      reports: { title: "Report" },
     };
     return templates[activeMenu] || templates.users;
   };
@@ -1199,6 +1425,7 @@ export default function AdminDashboard() {
   function getForeignKeyDisplay(item, key) {
     switch (key) {
       case "student":
+      case "student_data":
         if (item.student_data) {
           const s = item.student_data;
           return `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim() || "-";
@@ -1223,7 +1450,15 @@ export default function AdminDashboard() {
           ? `${item.attached_teacher.first_name} ${item.attached_teacher.last_name}`
           : "-";
       case "group":
-        return item.group?.group_number || "-";
+      case "group_data":
+        return item.group?.group_number || item.group_data?.group_number || "-";
+      case "teacher":
+      case "teacher_data":
+        if (item.teacher_data) {
+          const t = item.teacher_data;
+          return `${t.first_name ?? ""} ${t.last_name ?? ""}`.trim() || "-";
+        }
+        return "-";
       default:
         return "-";
     }
@@ -1258,10 +1493,10 @@ export default function AdminDashboard() {
 
       // Handle object values for sorting
       if (typeof aValue === "object" && aValue !== null) {
-        aValue = aValue.name || aValue.id || "";
+        aValue = aValue.name || aValue.title || aValue.id || "";
       }
       if (typeof bValue === "object" && bValue !== null) {
-        bValue = bValue.name || bValue.id || "";
+        bValue = bValue.name || bValue.title || bValue.id || "";
       }
 
       // Convert to strings for comparison
@@ -1327,6 +1562,11 @@ export default function AdminDashboard() {
         { key: "status", label: "Status", sortable: true },
         { key: "actions", label: "Actions", sortable: false },
       ],
+      reports: [
+        { key: "id", label: "ID", sortable: true },
+        { key: "created_at", label: "Created", sortable: true },
+        { key: "actions", label: "Actions", sortable: false },
+      ],
     };
 
     return baseColumns[activeMenu] || baseColumns.users;
@@ -1339,7 +1579,7 @@ export default function AdminDashboard() {
       .map((user) => ({
         value: user.id,
         label: `${user.first_name} ${user.last_name}`,
-        role: user.role, // 🔥 MUHIM
+        role: user.role,
       }));
 
     const teacherOptions = Object.values(relatedData.users || {})
@@ -1516,9 +1756,15 @@ export default function AdminDashboard() {
           type: "text",
           required: true,
         },
-        { name: "address", label: "Address", type: "text", required: false },
-        { name: "location", label: "Location", type: "text", required: false },
-        { name: "target", label: "Target", type: "textarea", required: false },
+        { name: "address", label: "Address", type: "text", required: true },
+        {
+          name: "location",
+          label: "Location",
+          type: "text",
+          required: true,
+          placeholder: "POINT(00.0000 00.0000)",
+        },
+        { name: "target", label: "Target", type: "textarea", required: true },
         {
           name: "start_time",
           label: "Start Time",
@@ -1527,9 +1773,34 @@ export default function AdminDashboard() {
         },
         { name: "end_time", label: "End Time", type: "time", required: true },
       ],
+      reports: [], // Reports are read-only, no form fields
     };
 
     return baseFields[activeMenu] || baseFields.users;
+  };
+
+  // Render status badge for reports
+  const renderReportStatusBadge = (status) => {
+    if (!status) return <StatusBadge className="inactive">-</StatusBadge>;
+
+    const statusStr = String(status).toLowerCase();
+    let statusClass = "inactive";
+
+    if (statusStr === "approved" || statusStr === "completed") {
+      statusClass = "approved";
+    } else if (statusStr === "rejected" || statusStr === "cancelled") {
+      statusClass = "rejected";
+    } else if (statusStr === "pending" || statusStr === "submitted") {
+      statusClass = "submitted";
+    } else if (statusStr === "active") {
+      statusClass = "active";
+    }
+
+    return (
+      <StatusBadge className={statusClass}>
+        {statusStr.charAt(0).toUpperCase() + statusStr.slice(1)}
+      </StatusBadge>
+    );
   };
 
   // Render status badge
@@ -1575,6 +1846,10 @@ export default function AdminDashboard() {
   const renderForm = () => {
     const fields = getFormFields();
 
+    if (activeMenu === "reports") {
+      return null; // Reports are read-only
+    }
+
     return (
       <form onSubmit={handleSubmit}>
         {fields.map((field) => (
@@ -1617,11 +1892,11 @@ export default function AdminDashboard() {
                 id={field.name}
                 name={field.name}
                 type={field.type}
-                value={formData[field.name] || ""}
                 onChange={handleInputChange}
                 required={field.required}
-                placeholder={field.label}
+                placeholder={field.placeholder}
                 disabled={field.disabled}
+                value={formData[field.name]}
               />
             )}
           </FormGroup>
@@ -1658,6 +1933,120 @@ export default function AdminDashboard() {
     );
   };
 
+  // Render report detail
+  const renderReportDetail = () => {
+    if (!selectedReport) return null;
+    const position = parseWKTPoint(selectedReport.location);
+
+    return (
+      <ReportDetailContainer>
+        <ReportSection>
+          <ReportSectionTitle>
+            <FaUser /> Student Information
+          </ReportSectionTitle>
+          <ReportField>
+            <ReportLabel>
+              Student ({selectedReport.student?.id || ""}):
+            </ReportLabel>
+            <ReportValue>
+              {selectedReport.student?.first_name || ""}{" "}
+              {selectedReport.student?.last_name || ""}
+            </ReportValue>
+          </ReportField>
+          <ReportField>
+            <ReportLabel>Group:</ReportLabel>
+            <ReportValue>{selectedReport.student?.group || "N/A"}</ReportValue>
+          </ReportField>
+          <ReportField>
+            <ReportLabel>Yo'nalish:</ReportLabel>
+            <ReportValue>
+              {selectedReport.student?.direction || "N/A"}
+            </ReportValue>
+          </ReportField>
+        </ReportSection>
+
+        <ReportSection>
+          <ReportSectionTitle>
+            <FaFileAlt /> Report Details
+          </ReportSectionTitle>
+          <ReportField>
+            <ReportLabel>Practise Day ID:</ReportLabel>
+            <ReportValue>{selectedReport.practice_day || "N/A"}</ReportValue>
+          </ReportField>
+          <ReportField>
+            <ReportLabel>Text:</ReportLabel>
+            <ReportValue>{selectedReport.text || "N/A"}</ReportValue>
+          </ReportField>
+          <ReportField>
+            <ReportLabel>Created:</ReportLabel>
+            <ReportValue>
+              {new Date(selectedReport.created_at).toLocaleString()}
+            </ReportValue>
+          </ReportField>
+          {selectedReport.updated_at && (
+            <ReportField>
+              <ReportLabel>Last Updated:</ReportLabel>
+              <ReportValue>
+                {new Date(selectedReport.updated_at).toLocaleString()}
+              </ReportValue>
+            </ReportField>
+          )}
+          <MediaRow>
+            {/* IMAGE */}
+            <MediaBox>
+              <MediaLabel>Rasm:</MediaLabel>
+              {selectedReport.image ? (
+                <ReportImage src={selectedReport.image} />
+              ) : (
+                <ReportValue>N/A</ReportValue>
+              )}
+            </MediaBox>
+
+            {/* MAP */}
+            <MediaBox>
+              <MediaLabel>Lokatsiya:</MediaLabel>
+
+              {position ? (
+                <MapContainer
+                  center={position}
+                  zoom={15}
+                  style={{
+                    height: "300px",
+                    width: "100%",
+                    borderRadius: "6px",
+                  }}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <Marker position={position} />
+                </MapContainer>
+              ) : (
+                <ReportValue>N/A</ReportValue>
+              )}
+            </MediaBox>
+          </MediaRow>
+        </ReportSection>
+
+        {selectedReport.content && (
+          <ReportSection>
+            <ReportSectionTitle>
+              <FaEdit /> Report Content
+            </ReportSectionTitle>
+            <ReportTextArea>{selectedReport.content}</ReportTextArea>
+          </ReportSection>
+        )}
+
+        {selectedReport.additional_info && (
+          <ReportSection>
+            <ReportSectionTitle>
+              <FaInfoCircle /> Additional Information
+            </ReportSectionTitle>
+            <ReportTextArea>{selectedReport.additional_info}</ReportTextArea>
+          </ReportSection>
+        )}
+      </ReportDetailContainer>
+    );
+  };
+
   return (
     <DashboardContainer>
       {/* Sidebar */}
@@ -1679,6 +2068,8 @@ export default function AdminDashboard() {
                   setCurrentPage(1);
                   setSearchQuery("");
                   setShowFilters(false);
+                  setSelectedReport(null);
+                  setShowReportDetail(false);
                 }}
               >
                 <MenuIcon>{item.icon}</MenuIcon>
@@ -1700,10 +2091,12 @@ export default function AdminDashboard() {
               <FaSync />
               Refresh
             </RefreshButton>
-            <ActionButton onClick={handleAddNew}>
-              <FaPlus />
-              Add New
-            </ActionButton>
+            {activeMenu !== "reports" && (
+              <ActionButton onClick={handleAddNew}>
+                <FaPlus />
+                Add New
+              </ActionButton>
+            )}
           </div>
         </ContentHeader>
 
@@ -1776,27 +2169,54 @@ export default function AdminDashboard() {
                           <TableCell key={column.key}>
                             {column.key === "actions" ? (
                               <ActionCell>
-                                <IconButton
-                                  className="edit"
-                                  title="Edit"
-                                  onClick={() => handleEdit(item)}
-                                >
-                                  <FaEdit />
-                                </IconButton>
-                                <IconButton
-                                  className="delete"
-                                  title="Delete"
-                                  onClick={() => {
-                                    setDeleteItemId(item.id);
-                                    setShowDeleteModal(true);
-                                  }}
-                                >
-                                  <FaTrash />
-                                </IconButton>
+                                {activeMenu === "reports" ? (
+                                  <>
+                                    <IconButton
+                                      className="view"
+                                      title="View Details"
+                                      onClick={() => handleViewReport(item.id)}
+                                    >
+                                      <FaEye />
+                                    </IconButton>
+                                    <IconButton
+                                      className="download"
+                                      title="Download Report"
+                                      onClick={() => handleDownloadReport(item)}
+                                    >
+                                      <FaDownload />
+                                    </IconButton>
+                                  </>
+                                ) : (
+                                  <>
+                                    <IconButton
+                                      className="edit"
+                                      title="Edit"
+                                      onClick={() => handleEdit(item)}
+                                    >
+                                      <FaEdit />
+                                    </IconButton>
+                                    <IconButton
+                                      className="delete"
+                                      title="Delete"
+                                      onClick={() => {
+                                        setDeleteItemId(item.id);
+                                        setShowDeleteModal(true);
+                                      }}
+                                    >
+                                      <FaTrash />
+                                    </IconButton>
+                                  </>
+                                )}
                               </ActionCell>
                             ) : column.key === "is_active" ||
                               column.key === "status" ? (
-                              renderStatusBadge(item[column.key])
+                              activeMenu === "reports" ? (
+                                renderReportStatusBadge(item[column.key])
+                              ) : (
+                                renderStatusBadge(item[column.key])
+                              )
+                            ) : column.key === "created_at" ? (
+                              new Date(item[column.key]).toLocaleDateString()
                             ) : (
                               // Fix: Always convert to string to avoid object rendering errors
                               (() => {
@@ -1812,7 +2232,10 @@ export default function AdminDashboard() {
                                     "vice_id",
                                     "attached_teacher",
                                     "student",
+                                    "student_data",
                                     "group",
+                                    "group_data",
+                                    "teacher_data",
                                   ].includes(column.key)
                                 ) {
                                   return getForeignKeyDisplay(item, column.key);
@@ -1830,6 +2253,7 @@ export default function AdminDashboard() {
                                     if (value.first_name && value.last_name) {
                                       return `${value.first_name} ${value.last_name}`;
                                     }
+                                    if (value.title) return value.title;
                                     return JSON.stringify(value);
                                   } catch {
                                     return "-";
@@ -1924,7 +2348,7 @@ export default function AdminDashboard() {
       </MainContent>
 
       {/* Create/Edit Modal */}
-      {showModal && (
+      {showModal && activeMenu !== "reports" && (
         <ModalOverlay onClick={() => !isSubmitting && setShowModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
@@ -1943,8 +2367,42 @@ export default function AdminDashboard() {
         </ModalOverlay>
       )}
 
+      {/* Report Detail Modal */}
+      {showReportDetail && (
+        <ModalOverlay
+          onClick={() => !reportDetailLoading && setShowReportDetail(false)}
+        >
+          <ModalContent
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "800px" }}
+          >
+            <ModalHeader>
+              <ModalTitle>
+                <FaFileAlt /> Report Details
+              </ModalTitle>
+              <ModalCloseButton
+                onClick={() => setShowReportDetail(false)}
+                disabled={reportDetailLoading}
+              >
+                <FaTimes />
+              </ModalCloseButton>
+            </ModalHeader>
+            {reportDetailLoading ? (
+              <LoadingSpinner>
+                <FaSpinner size={32} />
+                <div style={{ marginTop: "16px" }}>
+                  Loading report details...
+                </div>
+              </LoadingSpinner>
+            ) : (
+              renderReportDetail()
+            )}
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {showDeleteModal && activeMenu !== "reports" && (
         <ModalOverlay onClick={() => !isDeleting && setShowDeleteModal(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <DeleteConfirmModal>

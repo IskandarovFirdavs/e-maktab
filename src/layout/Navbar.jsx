@@ -8,6 +8,8 @@ import { IoExitOutline } from "react-icons/io5";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import runaway from "../assets/runaway1.gif";
 import runaway2 from "../assets/runaway2.gif";
+import { IoReloadOutline } from "react-icons/io5";
+import { FaRegUserCircle } from "react-icons/fa";
 
 const fadeIn = keyframes`
   0% {
@@ -125,6 +127,27 @@ const Avatar = styled.div`
   }
 `;
 
+const UserInfo = styled.div`
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+
+  .full-name {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .role {
+    font-size: 12px;
+    opacity: 0.9;
+  }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
 const Langs = styled.div`
   display: flex;
   gap: 6px;
@@ -218,7 +241,6 @@ const Switcher = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  align-items: center;
 `;
 
 const ExitItem = styled.div`
@@ -251,15 +273,33 @@ function Navbar({ dark, setDark }) {
   const [lang, setLang] = useState("uz");
   const [history, setHistory] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // FAKE USER (o'z JSONdan olasan)
-  const user = {
-    username: "Firdavs",
-    first_name: "Firdavs",
-    last_name: "Iskandarov",
+  // Fetch current user on component mount
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+
+  // Function to fetch current user data
+  const fetchCurrentUser = async () => {
+    try {
+      setLoading(true);
+      const userData = await api.getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      // If API fails, use localStorage or session data if available
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Initialize history on component mount and track location changes
@@ -282,11 +322,49 @@ function Navbar({ dark, setDark }) {
     }
   }, [location.pathname]);
 
-  const getLetter = () => {
-    if (user.username) return user.username[0].toUpperCase();
-    if (user.first_name) return user.first_name[0].toUpperCase();
-    if (user.last_name) return user.last_name[0].toUpperCase();
-    return "?";
+  const getInitials = () => {
+    if (!user) return "?";
+
+    if (user.first_name && user.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`;
+    }
+
+    if (user.username) {
+      return user.username[0].toUpperCase();
+    }
+  };
+
+  const getDisplayName = () => {
+    if (!user) return "Foydalanuvchi";
+
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+
+    if (user.username) {
+      return user.username;
+    }
+
+    return "Foydalanuvchi";
+  };
+
+  const getRoleDisplay = () => {
+    if (!user || !user.role) return "";
+
+    switch (user.role) {
+      case "student":
+        return "Talaba";
+      case "teacher":
+        return "O'qituvchi";
+      case "dekan":
+        return "Dekan";
+      case "rector":
+        return "Rektor";
+      case "admin":
+        return "Administrator";
+      default:
+        return user.role;
+    }
   };
 
   // Navigation functions using React Router's navigate
@@ -336,6 +414,22 @@ function Navbar({ dark, setDark }) {
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+      // Clear user data
+      setUser(null);
+      localStorage.removeItem("user");
+      // Redirect to login page
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still redirect even if API call fails
+      navigate("/login");
+    }
+  };
+
   return (
     <Nav>
       <Left>
@@ -364,14 +458,39 @@ function Navbar({ dark, setDark }) {
             <IoChevronForward />
           </NavButton>
         </NavButtons>
+
+        {/* User Info - Show only on desktop */}
+
         {/* Avatar */}
-        <Avatar onClick={() => setOpen(!open)}>{getLetter()}</Avatar>
+        <Avatar onClick={() => setOpen(!open)}>
+          {loading ? <IoReloadOutline /> : <FaRegUserCircle />}
+        </Avatar>
 
         {open && (
           <>
             <MenuBackdrop onClick={() => setOpen(false)} />
 
             <Menu dark={dark} ref={menuRef}>
+              {/* Show user info in menu for mobile */}
+              {!loading && user && (
+                <MenuItem
+                  dark={dark}
+                  style={{
+                    borderBottom: "1px solid rgba(0,0,0,0.1)",
+                    cursor: "default",
+                    opacity: dark ? 0.8 : 0.9,
+                    fontSize: "14px",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{getDisplayName()}</div>
+                    <div style={{ fontSize: "12px", marginTop: "4px" }}>
+                      {getRoleDisplay()}
+                    </div>
+                  </div>
+                </MenuItem>
+              )}
+
               <MenuItem dark={dark}>
                 Til
                 <Langs dark={dark}>
@@ -392,7 +511,7 @@ function Navbar({ dark, setDark }) {
                 </Switcher>
               </SwitchWrapper>
 
-              <ExitItem dark={dark} onClick={() => api.logout()}>
+              <ExitItem dark={dark} onClick={handleLogout}>
                 Chiqish
                 <Imgs>
                   {dark ? (
