@@ -543,12 +543,6 @@ export default function StudentDetail({ isDark = false }) {
                   {prc.date}
                 </ScoreBadge>
               </MobileTable>
-              <ScoreBadge
-                badgeColor={getStatusColors(prc.status).badge}
-                textColor={getStatusColors(prc.status).text}
-              >
-                {prc.date}
-              </ScoreBadge>
             </TableRow>
           ))
         )}

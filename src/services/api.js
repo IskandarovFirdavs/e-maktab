@@ -5,6 +5,18 @@ class API {
   constructor() {
     this.token = localStorage.getItem("authToken") || "";
   }
+  // API.js ichida
+  getImageUrl(path) {
+    if (!path) return "";
+
+    // agar backend to‘liq URL qaytargan bo‘lsa
+    if (path.startsWith("http")) {
+      return path;
+    }
+
+    // MEDIA uchun proxy orqali
+    return path.startsWith("/") ? path : `/${path}`;
+  }
 
   // Umumiy so'rov metod
   async request(endpoint, options = {}) {

@@ -12,7 +12,7 @@ import PractiseDetail from "./pages/PractiseDetail.jsx";
 import Departments from "./pages/Departments.jsx";
 import StudentDashboard from "./pages/StudentDashboard.jsx";
 import StudentDetail from "./pages/StudentDetail.jsx";
-import StudentPractise from "./pages/StudentPractise.jsx";
+import StudentReportDetail from "./pages/StudentReportDetail.jsx";
 import StudentPractiseCreate from "./pages/StudentPractiseCreate.jsx";
 import Students from "./pages/Students.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
@@ -47,7 +47,10 @@ function AppContent() {
             path="/student/practise/create/:practiceDayId"
             element={<StudentPractiseCreate />}
           />
-          <Route path="/student/practise/:id" element={<StudentPractise />} />
+          <Route
+            path="/student/practise/:id"
+            element={<StudentReportDetail />}
+          />
           <Route path="/student/:id/day/:dayId" element={<PractiseDetail />} />
 
           {/* ID bilan yo'llar */}

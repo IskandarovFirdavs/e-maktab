@@ -21,6 +21,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "^/media/.*": {
+        target: "https://7ad089bd7a00.ngrok-free.app",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
