@@ -7,22 +7,22 @@ export default defineConfig({
   server: {
     proxy: {
       "^/university/.*": {
-        target: "https://91eb7ea1cc14.ngrok-free.app",
+        target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,
       },
       "^/practice/.*": {
-        target: "https://91eb7ea1cc14.ngrok-free.app",
+        target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,
       },
       "^/users/.*": {
-        target: "https://91eb7ea1cc14.ngrok-free.app",
+        target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,
       },
       "^/media/.*": {
-        target: "https://91eb7ea1cc14.ngrok-free.app",
+        target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,
       },

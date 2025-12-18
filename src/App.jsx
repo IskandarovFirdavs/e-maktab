@@ -1,14 +1,15 @@
-import { Routes, Route, useLocation } from "react-router-dom";
-import Navbar from "./layout/Navbar.jsx";
-import styled, { ThemeProvider } from "styled-components";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { ThemeProvider } from "styled-components";
 import { useState, useEffect } from "react";
 import { lightTheme, darkTheme } from "./styles/theme.js";
-import AppWrapper from "./styles/AppWrapper.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
 import PrivateRoute from "./context/PrivateRoute.jsx";
+import Navbar from "./layout/Navbar.jsx";
+import AppWrapper from "./styles/AppWrapper.jsx";
+
 // Pages
 import Faculties from "./pages/Faculties.jsx";
 import Directions from "./pages/Directions.jsx";
-import PractiseDetail from "./pages/PractiseDetail.jsx";
 import Departments from "./pages/Departments.jsx";
 import StudentDashboard from "./pages/StudentDashboard.jsx";
 import StudentDetail from "./pages/StudentDetail.jsx";
@@ -18,6 +19,8 @@ import Students from "./pages/Students.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Login from "./auth/Login.jsx";
 import Groups from "./pages/Groups.jsx";
+
+import { ROLES } from "./constants/roles.js";
 
 function AppContent() {
   const [dark, setDark] = useState(() => {
@@ -29,14 +32,7 @@ function AppContent() {
   }, [dark]);
 
   const location = useLocation();
-
-  // Login sahifasida navbar ko'rsatilmaydi
   const hideNavbar = location.pathname === "/";
-
-  const facultyAndDepartmentsPaths = ["/faculty/:id", "/departments"];
-  const departmentAndDirectionsPaths = ["/department/:id", "/directions"];
-  const directionAndGroupsPaths = ["/direction/:id", "/groups"];
-  const groupAndStudentsPaths = ["/group/:id", "/students"];
 
   return (
     <ThemeProvider theme={dark ? darkTheme : lightTheme}>
@@ -45,77 +41,246 @@ function AppContent() {
         {!hideNavbar && <Navbar dark={dark} setDark={setDark} />}
 
         <Routes>
+          {/* Public route - Login */}
           <Route path="/" element={<Login dark={dark} setDark={setDark} />} />
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/student/:id" element={<StudentDetail />} />
+
+          {/* Student routes */}
+          <Route
+            path="/student/dashboard"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.STUDENT,
+                  ROLES.TEACHER,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <StudentDashboard />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/student/practise/create/:practiceDayId"
-            element={<StudentPractiseCreate />}
+            element={
+              <PrivateRoute allowedRoles={[ROLES.STUDENT]}>
+                <StudentPractiseCreate />
+              </PrivateRoute>
+            }
           />
+
+          {/* Staff routes - Student details */}
+          <Route
+            path="/student/:id"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.TEACHER,
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <StudentDetail />
+              </PrivateRoute>
+            }
+          />
+
           <Route
             path="/student/practise/:id"
-            element={<StudentReportDetail />}
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.TEACHER,
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <StudentReportDetail />
+              </PrivateRoute>
+            }
           />
-          <Route path="/student/:id/day/:dayId" element={<PractiseDetail />} />
 
+          {/* Management routes - Faculties */}
           <Route
             path="/faculties"
             element={
-              <PrivateRoute>
+              <PrivateRoute
+                allowedRoles={[ROLES.RECTOR, ROLES.ADMIN, ROLES.SUPER_USER]}
+              >
                 <Faculties />
               </PrivateRoute>
             }
           />
 
-          {/* ID bilan yo'llar */}
+          <Route
+            path="/faculty/:id"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.RECTOR,
+                  ROLES.DEAN,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Departments />
+              </PrivateRoute>
+            }
+          />
 
-          {facultyAndDepartmentsPaths.map((path) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <PrivateRoute>
-                  <Departments />
-                </PrivateRoute>
-              }
-            />
-          ))}
-          {departmentAndDirectionsPaths.map((path) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <PrivateRoute>
-                  <Directions />
-                </PrivateRoute>
-              }
-            />
-          ))}
+          {/* Management routes - Departments */}
+          <Route
+            path="/departments"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.RECTOR,
+                  ROLES.DEAN,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Departments />
+              </PrivateRoute>
+            }
+          />
 
-          {directionAndGroupsPaths.map((path) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <PrivateRoute>
-                  <Groups />
-                </PrivateRoute>
-              }
-            />
-          ))}
-          {groupAndStudentsPaths.map((path) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <PrivateRoute>
-                  <Students />
-                </PrivateRoute>
-              }
-            />
-          ))}
+          <Route
+            path="/department/:id"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Directions />
+              </PrivateRoute>
+            }
+          />
 
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          {/* Management routes - Directions */}
+          <Route
+            path="/directions"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Directions />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/direction/:id"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Groups />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Management routes - Groups */}
+          <Route
+            path="/groups"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Groups />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/group/:id"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.TEACHER,
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Students />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Management routes - Students */}
+          <Route
+            path="/students"
+            element={
+              <PrivateRoute
+                allowedRoles={[
+                  ROLES.TEACHER,
+                  ROLES.HEAD_OF_DEPARTMENT,
+                  ROLES.DEPUTY_DEAN,
+                  ROLES.DEAN,
+                  ROLES.RECTOR,
+                  ROLES.ADMIN,
+                  ROLES.SUPER_USER,
+                ]}
+              >
+                <Students />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Admin routes */}
+          <Route
+            path="/admin/dashboard"
+            element={
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SUPER_USER]}>
+                <AdminDashboard />
+              </PrivateRoute>
+            }
+          />
+
+          {/* 404 route - Not found */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppWrapper>
     </ThemeProvider>
@@ -123,7 +288,11 @@ function AppContent() {
 }
 
 function App() {
-  return <AppContent />;
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App;

@@ -290,9 +290,11 @@ function Navbar({ dark, setDark }) {
       setLoading(true);
       const userData = await api.getCurrentUser();
       setUser(userData);
+      // Save user to localStorage for consistency
+      localStorage.setItem("user", JSON.stringify(userData));
     } catch (error) {
       console.error("Error fetching user:", error);
-      // If API fails, use localStorage or session data if available
+      // If API fails, use localStorage data if available
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         setUser(JSON.parse(storedUser));
@@ -351,20 +353,19 @@ function Navbar({ dark, setDark }) {
   const getRoleDisplay = () => {
     if (!user || !user.role) return "";
 
-    switch (user.role) {
-      case "student":
-        return "Talaba";
-      case "teacher":
-        return "O'qituvchi";
-      case "dekan":
-        return "Dekan";
-      case "rector":
-        return "Rektor";
-      case "admin":
-        return "Administrator";
-      default:
-        return user.role;
-    }
+    // Role'larni o'zbek tilida ko'rsatish
+    const roleMap = {
+      super_user: "Super Admin",
+      admin: "Administrator",
+      rector: "Rektor",
+      dean: "Dekan",
+      deputy_dean: "Dekan o'rinbosari",
+      head_of_department: "Kafedra mudiri",
+      teacher: "O'qituvchi",
+      student: "Talaba",
+    };
+
+    return roleMap[user.role] || user.role;
   };
 
   // Navigation functions using React Router's navigate
@@ -418,24 +419,74 @@ function Navbar({ dark, setDark }) {
   const handleLogout = async () => {
     try {
       await api.logout();
+    } catch (error) {
+      console.error("Logout API error:", error);
+    } finally {
       // Clear user data
       setUser(null);
       localStorage.removeItem("user");
+      localStorage.removeItem("authToken");
       // Redirect to login page
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Still redirect even if API call fails
-      navigate("/login");
+      navigate("/");
     }
+  };
+
+  // Function to get dashboard link based on role
+  const getDashboardLink = () => {
+    if (!user) return "/";
+
+    switch (user.role) {
+      case "student":
+        return "/student/dashboard";
+      case "teacher":
+        return "/students";
+      case "head_of_department":
+        return "/directions";
+      case "dean":
+      case "deputy_dean":
+        return "/departments";
+      case "rector":
+        return "/faculties";
+      case "admin":
+      case "super_user":
+        return "/admin/dashboard";
+      default:
+        return "/";
+    }
+  };
+
+  // Function to navigate to dashboard
+  const goToDashboard = () => {
+    navigate(getDashboardLink());
+  };
+
+  // Show user info in navbar (desktop only)
+  const renderUserInfo = () => {
+    if (!user || loading) return null;
+
+    return (
+      <UserInfo>
+        <div
+          className="full-name"
+          style={{ cursor: "pointer" }}
+          onClick={goToDashboard}
+        >
+          {getDisplayName()}
+        </div>
+        <div className="role">{getRoleDisplay()}</div>
+      </UserInfo>
+    );
   };
 
   return (
     <Nav>
       <Left>
-        <img src={logo} alt="Logo" />
-
-        {/* Navigation Buttons */}
+        <img
+          src={logo}
+          alt="Logo"
+          style={{ cursor: "pointer" }}
+          onClick={goToDashboard}
+        />
       </Left>
 
       <Right>
@@ -460,10 +511,11 @@ function Navbar({ dark, setDark }) {
         </NavButtons>
 
         {/* User Info - Show only on desktop */}
+        {renderUserInfo()}
 
         {/* Avatar */}
         <Avatar onClick={() => setOpen(!open)}>
-          {loading ? <IoReloadOutline /> : <FaRegUserCircle />}
+          {loading ? <IoReloadOutline /> : getInitials() || <FaRegUserCircle />}
         </Avatar>
 
         {open && (
@@ -471,7 +523,7 @@ function Navbar({ dark, setDark }) {
             <MenuBackdrop onClick={() => setOpen(false)} />
 
             <Menu dark={dark} ref={menuRef}>
-              {/* Show user info in menu for mobile */}
+              {/* Show user info in menu for all devices */}
               {!loading && user && (
                 <MenuItem
                   dark={dark}

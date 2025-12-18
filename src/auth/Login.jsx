@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import styled, { useTheme } from "styled-components";
 import darklogo from "../../public/darklogo.png";
 import lightlogo from "../../public/logog.png";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import icon from "../../public/seticon.png";
 import darkicon from "../../public/Group.png";
-import api from "../services/api.js";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext"; // AuthContext'ni import qilamiz
 
 // --- WRAPPER ---
 const Wrapper = styled.div`
@@ -161,7 +161,6 @@ const EyeIcon = styled.div`
   font-size: 20px;
 `;
 
-// --- LOGIN COMPONENT ---
 export default function Login({ dark, setDark }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -170,39 +169,62 @@ export default function Login({ dark, setDark }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+  const { login, user } = useAuth(); // AuthContext'dan login funksiyasini olamiz
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      navigate("/faculties");
+    // Agar user allaqachon login qilgan bo'lsa, uni tegishli sahifaga yo'naltiramiz
+    if (user) {
+      redirectBasedOnRole(user.role);
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
-  // Login.jsx - debug qo'shish
+  // Role bo'yicha yo'naltirish funksiyasi
+  const redirectBasedOnRole = (role) => {
+    switch (role) {
+      case "super_user":
+      case "admin":
+        navigate("/admin/dashboard");
+        break;
+      case "rector":
+        navigate("/faculties");
+        break;
+      case "dean":
+      case "deputy_dean":
+        navigate("/departments");
+        break;
+      case "head_of_department":
+        navigate("/directions");
+        break;
+      case "teacher":
+        navigate("/students");
+        break;
+      case "student":
+        navigate("/student/dashboard");
+        break;
+      default:
+        navigate("/");
+        break;
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      await api.login(username, password);
+      // AuthContext'dagi login funksiyasini chaqiramiz
+      const result = await login(username, password);
 
-      // 👇 USERNI OLAMIZ
-      const user = await api.getCurrentUser();
-
-      // USERNI SAQLAYMIZ
-      localStorage.setItem("currentUser", JSON.stringify(user));
-
-      // 👇 ROLGA QARAB YO‘NALTIRISH
-      if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (user.role === "student") {
-        navigate("/student/dashboard");
+      if (result.success) {
+        // AuthContext user'ni o'zi o'rnatadi, useEffect orqali redirect qilinadi
+        console.log("Login successful:", result.user);
       } else {
-        navigate("/faculties"); // default
+        setError(result.error || "Login yoki parol xato");
       }
     } catch (err) {
-      setError("Login yoki parol xato");
+      setError("Server bilan aloqa xatosi");
+      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }
