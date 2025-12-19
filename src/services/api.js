@@ -1,5 +1,6 @@
 // API.js - API_BASE_URL ni to'g'ri o'rnating
-const API_BASE_URL = "";
+// const API_BASE_URL = "";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 class API {
   constructor() {
