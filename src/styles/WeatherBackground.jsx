@@ -55,22 +55,23 @@ const snowfallFar = keyframes`
   }
 `;
 
+// O'zgartirilgan animatsiya: o'ngdan chapga uchish
 const flyAcross = keyframes`
   0% {
-    left: 100%;
-    transform: translateX(0); /* start off-screen right */
+    left: -50%; /* o'ng tomondan boshlanadi */
+    transform: translateX(0) scaleX(-1); /* chap tomonga burilgan */
   }
   50% {
     left: 50%;
-    transform: translateX(-50%); /* slow mid-screen stop */
+    transform: translateX(-50%) scaleX(-1); /* markazda */
   }
   55% {
     left: 50%;
-    transform: translateX(-50%); /* short pause */
+    transform: translateX(-50%) scaleX(-1); /* qisqa to'xtash */
   }
   100% {
-    left: -50%; /* fully exit left */
-    transform: translateX(0); /* no extra offset */
+    left: 100%; /* chap tomondan chiqib ketadi */
+    transform: translateX(0) scaleX(-1); /* chap tomonga burilgan */
   }
 `;
 
@@ -191,6 +192,7 @@ const FlyingGif = styled.img`
   top: 80%;
   width: 250px;
   height: auto;
+
   z-index: 2;
   pointer-events: none;
   animation: ${flyAcross} 10s ease-in-out forwards;
