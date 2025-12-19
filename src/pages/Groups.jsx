@@ -242,7 +242,6 @@ export default function Groups({ isDark = false, onThemeChange }) {
         const result = directionId
           ? await api.getDirection(directionId)
           : await api.getGroups();
-        console.log(result);
 
         if (!aborted) setData(result);
       } catch (err) {
@@ -264,13 +263,17 @@ export default function Groups({ isDark = false, onThemeChange }) {
   if (!data) return <div className="p-4">No data found</div>;
 
   const groups = directionId ? data?.groups || [] : data || [];
+  const directionName =
+    Array.isArray(data) && data.length > 0
+      ? data[0]?.direction?.name
+      : data?.name;
 
   return (
     <DashboardContainer>
       {/* Directions Section */}
       <DirectionsSection>
         <HeaderRow>
-          <SectionTitle>{data.abbr || data.name} GURUHLARI</SectionTitle>
+          <SectionTitle>{data.name || directionName} GURUHLARI</SectionTitle>
 
           <div
             style={{

@@ -510,7 +510,6 @@ const parseLocation = (locationString) => {
       }
     }
   } catch (error) {
-    console.error("Error parsing location:", error);
   }
   return null;
 };
@@ -580,7 +579,6 @@ export default function Create({ onSubmissionSuccess }) {
         setPracticeDay(fetchedPracticeDay);
         setErrors((prev) => ({ ...prev, practiceDay: null }));
       } catch (err) {
-        console.error("Error loading practice day:", err);
         setErrors((prev) => ({
           ...prev,
           practiceDay: "Amaliyot kunini yuklashda xatolik: " + err.message,
@@ -696,7 +694,6 @@ export default function Create({ onSubmissionSuccess }) {
         navigate("/student/dashboard");
       }, 2000);
     } catch (err) {
-      console.error("Error creating report:", err);
 
       let errorMessage = "Hisobot yuborishda xatolik yuz berdi";
       if (err.response) {

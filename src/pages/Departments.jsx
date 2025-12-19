@@ -279,6 +279,8 @@ export default function Departments({ isDark = false, onThemeChange }) {
   if (!data) return <div className="p-4">No data found.</div>;
 
   const departments = facultyId ? data?.departments || [] : data || [];
+  const facultyName =
+    Array.isArray(data) && data.length > 0 ? data[0]?.faculty?.name : "";
 
   return (
     <DashboardContainer>
@@ -286,7 +288,7 @@ export default function Departments({ isDark = false, onThemeChange }) {
       <DepartmentsSection>
         <HeaderRow>
           <SectionTitle>
-            {facultyId ? data.name : "Barcha kafedralar"} — Kafedralar ro‘yxati
+            {facultyId ? data.name : facultyName} — Kafedralar ro‘yxati
           </SectionTitle>{" "}
           <div
             style={{

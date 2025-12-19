@@ -293,7 +293,6 @@ function Navbar({ dark, setDark }) {
       // Save user to localStorage for consistency
       localStorage.setItem("user", JSON.stringify(userData));
     } catch (error) {
-      console.error("Error fetching user:", error);
       // If API fails, use localStorage data if available
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
@@ -420,7 +419,6 @@ function Navbar({ dark, setDark }) {
     try {
       await api.logout();
     } catch (error) {
-      console.error("Logout API error:", error);
     } finally {
       // Clear user data
       setUser(null);
@@ -509,9 +507,6 @@ function Navbar({ dark, setDark }) {
             <IoChevronForward />
           </NavButton>
         </NavButtons>
-
-        {/* User Info - Show only on desktop */}
-        {renderUserInfo()}
 
         {/* Avatar */}
         <Avatar onClick={() => setOpen(!open)}>

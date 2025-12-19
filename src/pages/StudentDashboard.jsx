@@ -445,12 +445,10 @@ export default function StudentDashboard({ isDark = false }) {
         });
         if (!aborded) {
           setUserData(data);
-          console.log("Current user data:", data);
         }
       } catch (err) {
         if (err.name === "AbortError") return;
         if (!aborded) {
-          console.error("Error loading user data:", err);
           setError(err.message || String(err));
         }
       } finally {

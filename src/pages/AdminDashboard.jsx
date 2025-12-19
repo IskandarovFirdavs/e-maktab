@@ -26,6 +26,7 @@ import {
   FaCaretDown,
   FaFileAlt,
   FaDownload,
+  FaEyeSlash,
 } from "react-icons/fa";
 import api from "../services/api";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
@@ -567,8 +568,6 @@ const PageButton = styled.button`
   justify-content: center;
 
   &:hover:not(:disabled) {
-    background: ${(p) => p.theme.primary};
-    color: white;
     border-color: ${(p) => p.theme.primary};
     transform: translateY(-1px);
   }
@@ -579,8 +578,6 @@ const PageButton = styled.button`
   }
 
   &.active {
-    background: ${(p) => p.theme.primary};
-    color: white;
     border-color: ${(p) => p.theme.primary};
     box-shadow: 0 4px 12px ${(p) => p.theme.primary}40;
   }
@@ -768,18 +765,18 @@ const FormGroup = styled.div`
   position: relative;
 `;
 
-const FormLabel = styled.label`
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
-  color: ${(p) => p.theme.text}90;
-  font-size: 14px;
+// Styled components qismiga qo'shing:
+const FormGroupWrapper = styled.div`
+  margin-bottom: 24px;
+  position: relative;
 `;
 
+// FormInput ni yangilang:
 const FormInput = styled.input`
   background: none;
   width: 100%;
   padding: 14px;
+  padding-right: ${(props) => (props.$hasPasswordToggle ? "45px" : "14px")};
   border: 2px solid ${(p) => p.theme.border}60;
   border-radius: 10px;
   color: ${(p) => p.theme.text};
@@ -796,6 +793,14 @@ const FormInput = styled.input`
     opacity: 0.6;
     cursor: not-allowed;
   }
+`;
+
+const FormLabel = styled.label`
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: ${(p) => p.theme.text}90;
+  font-size: 14px;
 `;
 
 const FormSelect = styled.select`
@@ -846,6 +851,13 @@ const FormTextArea = styled.textarea`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+`;
+
+const PasswordToggle = styled.button`
+  &:hover {
+    color: ${(p) => p.theme.primary};
+    background: ${(p) => p.theme.background};
   }
 `;
 
@@ -1021,6 +1033,8 @@ export default function AdminDashboard() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportDetail, setShowReportDetail] = useState(false);
   const [reportDetailLoading, setReportDetailLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState({});
 
   function parseWKTPoint(wkt) {
     if (!wkt) return null;
@@ -1032,6 +1046,12 @@ export default function AdminDashboard() {
 
     return [lat, lng]; // Leaflet uchun
   }
+  const togglePasswordVisibility = (fieldName) => {
+    setPasswordVisible((prev) => ({
+      ...prev,
+      [fieldName]: !prev[fieldName],
+    }));
+  };
 
   // Menu Items - Added reports
   const menuItems = [
@@ -1101,9 +1121,7 @@ export default function AdminDashboard() {
           ? groups.reduce((acc, group) => ({ ...acc, [group.id]: group }), {})
           : {},
       });
-    } catch (err) {
-      console.error("Failed to fetch related data:", err);
-    }
+    } catch (err) {}
   }, []);
 
   // Fetch data with caching
@@ -1157,7 +1175,6 @@ export default function AdminDashboard() {
             break;
           case "reports":
             response = await api.getMyReports();
-            console.log(response);
             break;
           default:
             response = [];
@@ -1169,12 +1186,10 @@ export default function AdminDashboard() {
           localStorage.setItem(cacheKey, JSON.stringify(response));
           setCacheTimestamp((prev) => ({ ...prev, [activeMenu]: now }));
         } else {
-          console.error("Response is not an array:", response);
           setData([]);
         }
       } catch (err) {
         setError(`Failed to fetch ${activeMenu}: ${err.message}`);
-        console.error("Fetch error:", err);
         setData([]);
       } finally {
         setLoading(false);
@@ -1200,7 +1215,6 @@ export default function AdminDashboard() {
       setShowReportDetail(true);
     } catch (err) {
       setError(`Failed to fetch report details: ${err.message}`);
-      console.error("Fetch report detail error:", err);
     } finally {
       setReportDetailLoading(false);
     }
@@ -1213,11 +1227,8 @@ export default function AdminDashboard() {
     setError(null);
 
     try {
-      console.log("Submitting form data:", formData);
-
       if (editingItem) {
         // Update
-        console.log(`Updating ${activeMenu} with ID: ${editingItem.id}`);
         switch (activeMenu) {
           case "users":
             await api.updateUser(editingItem.id, formData);
@@ -1244,7 +1255,6 @@ export default function AdminDashboard() {
         setSuccess(`${getFormTemplate()?.title} updated successfully!`);
       } else {
         // Create
-        console.log(`Creating new ${activeMenu}`);
         switch (activeMenu) {
           case "users":
             await api.createUser(formData);
@@ -1282,7 +1292,6 @@ export default function AdminDashboard() {
     } catch (err) {
       const errorMsg = err.message || "Failed to save";
       setError(errorMsg);
-      console.error("Submit error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -1673,6 +1682,7 @@ ${
           name: "password",
           label: "Password",
           type: "password",
+          placeholder: "password",
           required: !editingItem,
         },
       ],
@@ -1843,7 +1853,6 @@ ${
     return sortDirection === "asc" ? <FaSortUp /> : <FaSortDown />;
   };
 
-  // Render form
   const renderForm = () => {
     const fields = getFormFields();
 
@@ -1853,55 +1862,99 @@ ${
 
     return (
       <form onSubmit={handleSubmit}>
-        {fields.map((field) => (
-          <FormGroup key={field.name}>
-            <FormLabel htmlFor={field.name}>
-              {field.label}
-              {field.required && " *"}
-            </FormLabel>
-            {field.type === "select" ? (
-              <FormSelect
-                id={field.name}
-                name={field.name}
-                value={formData[field.name] || ""}
-                onChange={handleInputChange}
-                required={field.required}
-                disabled={
-                  field.disabled ||
-                  (field.options && field.options.length === 0)
-                }
-              >
-                <option value="">Select {field.label}</option>
-                {field.options?.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </FormSelect>
-            ) : field.type === "textarea" ? (
-              <FormTextArea
-                id={field.name}
-                name={field.name}
-                value={formData[field.name] || ""}
-                onChange={handleInputChange}
-                required={field.required}
-                rows="4"
-                disabled={field.disabled}
-              />
-            ) : (
-              <FormInput
-                id={field.name}
-                name={field.name}
-                type={field.type}
-                onChange={handleInputChange}
-                required={field.required}
-                placeholder={field.placeholder}
-                disabled={field.disabled}
-                value={formData[field.name]}
-              />
-            )}
-          </FormGroup>
-        ))}
+        {fields.map((field) => {
+          if (field.type === "password") {
+            return (
+              <FormGroupWrapper key={field.name}>
+                <FormLabel htmlFor={field.name}>
+                  {field.label}
+                  {field.required && " *"}
+                </FormLabel>
+                <div style={{ position: "relative" }}>
+                  <FormInput
+                    id={field.name}
+                    name={field.name}
+                    type={passwordVisible[field.name] ? "text" : "password"}
+                    value={formData[field.name] || ""}
+                    onChange={handleInputChange}
+                    required={field.required}
+                    placeholder={field.placeholder}
+                    disabled={field.disabled}
+                    $hasPasswordToggle={true}
+                  />
+                  <PasswordToggle
+                    type="button"
+                    onClick={() => togglePasswordVisibility(field.name)}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      top: "10px",
+                      background: "none",
+                      border: "none",
+                      color: "#666",
+                      cursor: "pointer",
+                      padding: "8px",
+                      fontSize: "18px",
+                    }}
+                  >
+                    {passwordVisible[field.name] ? <FaEyeSlash /> : <FaEye />}
+                  </PasswordToggle>
+                </div>
+              </FormGroupWrapper>
+            );
+          }
+
+          return (
+            <FormGroup key={field.name}>
+              <FormLabel htmlFor={field.name}>
+                {field.label}
+                {field.required && " *"}
+              </FormLabel>
+              {field.type === "select" ? (
+                <FormSelect
+                  id={field.name}
+                  name={field.name}
+                  value={formData[field.name] || ""}
+                  onChange={handleInputChange}
+                  required={field.required}
+                  disabled={
+                    field.disabled ||
+                    (field.options && field.options.length === 0)
+                  }
+                >
+                  <option value="">Select {field.label}</option>
+                  {field.options?.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </FormSelect>
+              ) : field.type === "textarea" ? (
+                <FormTextArea
+                  id={field.name}
+                  name={field.name}
+                  value={formData[field.name] || ""}
+                  onChange={handleInputChange}
+                  required={field.required}
+                  rows="4"
+                  disabled={field.disabled}
+                />
+              ) : (
+                <FormInput
+                  id={field.name}
+                  name={field.name}
+                  type={field.type}
+                  onChange={handleInputChange}
+                  required={field.required}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                  value={formData[field.name] || ""}
+                  $hasPasswordToggle={false}
+                />
+              )}
+            </FormGroup>
+          );
+        })}
 
         <FormActions>
           <SecondaryButton

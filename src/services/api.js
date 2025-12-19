@@ -56,8 +56,6 @@ class API {
         return { success: true };
       }
     } catch (error) {
-      console.error("API so'rov xatosi:", error);
-
       // CORS xatosini aniqlash
       if (
         error.name === "TypeError" &&
@@ -456,7 +454,6 @@ class API {
 
       return await response.json();
     } catch (error) {
-      console.error("Report yaratish xatosi:", error);
       throw error;
     }
   }

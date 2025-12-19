@@ -375,7 +375,6 @@ export default function Faculties({ isDark = false, onThemeChange }) {
         const data = await api.getFaculties();
         setFaculties(data);
       } catch (err) {
-        console.error("Fakultetlarni olishda xato:", err);
         setError("Ma'lumotlarni yuklashda xatolik yuz berdi: " + err.message);
       } finally {
         setLoading(false);

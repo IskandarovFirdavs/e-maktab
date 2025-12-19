@@ -218,13 +218,11 @@ export default function Login({ dark, setDark }) {
 
       if (result.success) {
         // AuthContext user'ni o'zi o'rnatadi, useEffect orqali redirect qilinadi
-        console.log("Login successful:", result.user);
       } else {
         setError(result.error || "Login yoki parol xato");
       }
     } catch (err) {
       setError("Server bilan aloqa xatosi");
-      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }

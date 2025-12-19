@@ -322,7 +322,6 @@ function parseWKTPoint(wkt) {
 
     return null;
   } catch (error) {
-    console.error("Error parsing location:", error);
     return null;
   }
 }
@@ -447,10 +446,8 @@ export default function StudentReportDetail() {
         throw new Error("Amaliyot kuni topilmadi");
       }
 
-      console.log("Practice day data loaded:", data);
       setPracticeDay(data);
     } catch (err) {
-      console.error("Error fetching practice day:", err);
       setError(err.message || "Amaliyot kunini yuklab bo'lmadi");
     } finally {
       setLoading(false);
@@ -560,7 +557,6 @@ export default function StudentReportDetail() {
                       alt="Hisobot rasmi"
                       onError={(e) => {
                         e.target.style.display = "none";
-                        console.log("Rasm yuklanmadi:", reportsData.image);
                       }}
                     />
                   ) : (

@@ -308,15 +308,16 @@ export default function Students({ isDark = false, onThemeChange }) {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
   if (!group) return <div className="p-4">No data</div>;
 
+  const groupNumber =
+    group?.group_number ?? group?.students?.[0]?.group?.group_number ?? "";
+
   return (
     <DashboardContainer>
       {/* Student Practice Days Section */}
       <PracticeDaysSection>
         <HeaderRow>
           <SectionTitle>
-            {groupId
-              ? `${group.group_number}-guruh talabalari`
-              : "Barcha talabalar"}
+            {groupId ? `${group.group_number}` : groupNumber}-guruh talabalari
           </SectionTitle>
 
           <div

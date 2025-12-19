@@ -5,7 +5,7 @@ import { lightTheme, darkTheme } from "./styles/theme.js";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import PrivateRoute from "./context/PrivateRoute.jsx";
 import Navbar from "./layout/Navbar.jsx";
-import AppWrapper from "./styles/AppWrapper.jsx";
+import AppWrapper from "./styles/WeatherBackground.jsx";
 
 // Pages
 import Faculties from "./pages/Faculties.jsx";

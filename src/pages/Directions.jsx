@@ -264,6 +264,10 @@ export default function Directions({ isDark = false, onThemeChange }) {
   if (!data) return <div className="p-4">No data found</div>;
 
   const directions = departmentId ? data?.directions || [] : data || [];
+  const departmentName =
+    Array.isArray(data) && data.length > 0
+      ? data[0]?.department?.name
+      : data?.name;
 
   return (
     <DashboardContainer>
@@ -271,9 +275,8 @@ export default function Directions({ isDark = false, onThemeChange }) {
       <DirectionsSection>
         <HeaderRow>
           <SectionTitle>
-            {departmentId
-              ? `${data.abbr} kafedra yo‘nalishlari`
-              : "Barcha yo‘nalishlar"}
+            {departmentId ? `${data.name}` : departmentName} kafedra
+            yo‘nalishlari
           </SectionTitle>
           <div
             style={{
