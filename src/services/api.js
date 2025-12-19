@@ -1,34 +1,23 @@
-// API.js - API_BASE_URL ni to'g'ri o'rnating
-// const API_BASE_URL = "";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "" // Vite proxy ishlatadi
+    : "https://api.e-kundalikfu.uz";
 
 class API {
   constructor() {
     this.token = localStorage.getItem("authToken") || "";
   }
-  // API.js ichida
-  getImageUrl(path) {
-    if (!path) return "";
 
-    // agar backend to‘liq URL qaytargan bo‘lsa
-    if (path.startsWith("http")) {
-      return path;
-    }
-
-    // MEDIA uchun proxy orqali
-    return path.startsWith("/") ? path : `/${path}`;
-  }
-
-  // Umumiy so'rov metod
+  // CORS bilan ishlash uchun yangilangan request metod
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
 
     const config = {
+      ...options,
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
       },
-      ...options,
     };
 
     // Token qo'shish
@@ -36,37 +25,30 @@ class API {
       config.headers["Authorization"] = `Bearer ${this.token}`;
     }
 
+    // CORS mode ni qo'shish
+    config.mode = "cors";
+    config.credentials = "include";
+
     try {
       const response = await fetch(url, config);
 
-      // 401 xatosi bo'lsa
-      if (response.status === 401) {
-        this.clearToken();
-        throw new Error("Authentication failed. Please login again.");
+      // CORS preflight uchun
+      if (response.status === 404 && response.statusText === "Not Found") {
+        // Boshqa endpointni sinab ko'rish
+        const altUrl = `https://api.e-kundalikfu.uz/api${endpoint}`;
+        const altResponse = await fetch(altUrl, config);
+        if (altResponse.ok) {
+          return await altResponse.json();
+        }
       }
 
       if (!response.ok) {
         throw new Error(`HTTP xatolik! Status: ${response.status}`);
       }
 
-      // JSON response ni olish
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return await response.json();
-      } else {
-        return { success: true };
-      }
+      return await response.json();
     } catch (error) {
-      // CORS xatosini aniqlash
-      if (
-        error.name === "TypeError" &&
-        error.message.includes("Failed to fetch")
-      ) {
-        throw new Error(
-          "CORS xatosi: Serverga ulanib bo'lmadi. Backend CORS sozlamalarini tekshiring."
-        );
-      }
-
+      console.error("API Request Error:", error);
       throw error;
     }
   }
