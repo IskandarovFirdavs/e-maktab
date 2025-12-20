@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  const { path } = req.query; // array
-  const endpoint = "/" + path.join("/"); // /users/login/ kabi
+  const { path } = req.query; // array, masalan ["users","login"]
+  const endpoint = "/" + path.join("/"); // /users/login
   const url = `https://api.e-kundalikfu.uz${endpoint}`;
 
   try {
