@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  // frontenddan kelgan endpointni oling
-  const endpoint = req.url.replace("/api", ""); // /users/login/ kabi
+  // req.url = /api/proxy/users/login/
+  const endpoint = req.url.replace("/api/proxy", ""); // endi /users/login/ bo'ladi
   const url = `https://api.e-kundalikfu.uz${endpoint}`;
 
   try {

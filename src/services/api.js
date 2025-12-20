@@ -1,5 +1,5 @@
 // API.js - API_BASE_URL ni to'g'ri o'rnating
-const API_BASE_URL = "/api";
+const API_BASE_URL = "/api/proxy";
 
 class API {
   constructor() {
