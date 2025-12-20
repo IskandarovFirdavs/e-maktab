@@ -5,23 +5,24 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
+    port: 3000,
     proxy: {
-      "^/university/.*": {
+      "/users": {
         target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,
       },
-      "^/practice/.*": {
+      "/university": {
         target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,
       },
-      "^/users/.*": {
+      "/practice": {
         target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,
       },
-      "^/media/.*": {
+      "/media": {
         target: "https://api.e-kundalikfu.uz",
         changeOrigin: true,
         secure: false,

@@ -1,5 +1,7 @@
-// API.js - API_BASE_URL ni to'g'ri o'rnating
-const API_BASE_URL = "/api/proxy";
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "" // Vite proxy ishlatadi
+    : "https://api.e-kundalikfu.uz";
 
 class API {
   constructor() {
