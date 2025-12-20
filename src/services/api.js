@@ -1,5 +1,5 @@
 // API.js - API_BASE_URL ni to'g'ri o'rnating
-const API_BASE_URL = "https://api.e-kundalikfu.uz";
+const API_BASE_URL = "/api";
 
 class API {
   constructor() {
