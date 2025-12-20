@@ -49,12 +49,7 @@ function AppContent() {
             path="/student/dashboard"
             element={
               <PrivateRoute
-                allowedRoles={[
-                  ROLES.STUDENT,
-                  ROLES.TEACHER,
-                  ROLES.ADMIN,
-                  ROLES.SUPER_USER,
-                ]}
+                allowedRoles={[ROLES.STUDENT, ROLES.ADMIN, ROLES.SUPER_USER]}
               >
                 <StudentDashboard />
               </PrivateRoute>

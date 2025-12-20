@@ -555,7 +555,7 @@ export default function StudentDashboard({ isDark = false }) {
       <DashboardContainer>
         <LoadingSpinner>
           <FaUserGraduate />
-          <p>Loading your dashboard...</p>
+          <p>Boshqaruv paneli yuklanmoqda...</p>
         </LoadingSpinner>
       </DashboardContainer>
     );
@@ -566,7 +566,7 @@ export default function StudentDashboard({ isDark = false }) {
       <DashboardContainer>
         <EmptyState>
           <FaEyeSlash />
-          <p>Error loading dashboard</p>
+          <p>Boshqaruv panelini yuklashda xatolik yuz berdi</p>
           <p style={{ fontSize: "14px", opacity: 0.7 }}>{error}</p>
         </EmptyState>
       </DashboardContainer>
@@ -578,9 +578,9 @@ export default function StudentDashboard({ isDark = false }) {
       <DashboardContainer>
         <EmptyState>
           <FaUserGraduate />
-          <p>No user data found</p>
+          <p>Hech qanday foydalanuvchi maʼlumotlari topilmadi</p>
           <p style={{ fontSize: "14px", opacity: 0.7 }}>
-            Please log in to access your dashboard
+            Iltimos, asboblar paneliga kirish uchun tizimga kiring
           </p>
         </EmptyState>
       </DashboardContainer>
@@ -605,22 +605,20 @@ export default function StudentDashboard({ isDark = false }) {
             <UserInfoRow>
               {userData.role === "student" && userData.group && (
                 <UserInfoText>
-                  Group: {userData.group.group_number}
+                  Guruh: {userData.group.group_number}
                 </UserInfoText>
               )}
 
               {userData.role === "student" && userData.attached_teacher && (
                 <UserInfoText>
-                  Teacher: {userData.attached_teacher.first_name}{" "}
+                  O'qituvchi: {userData.attached_teacher.first_name}{" "}
                   {userData.attached_teacher.last_name}
                 </UserInfoText>
               )}
-
-              <UserInfoText>ID: {userData.id}</UserInfoText>
             </UserInfoRow>
           </div>
           <Count>
-            <Counter>{practiceDays.length} practice days</Counter>
+            <Counter>{practiceDays.length} amaliyot kunlari</Counter>
           </Count>
         </HeaderRow>
 
@@ -628,18 +626,18 @@ export default function StudentDashboard({ isDark = false }) {
           userData.role === "student" ? (
             <EmptyState>
               <FaUserGraduate />
-              <p>No practice days assigned yet</p>
+              <p>Amaliyot kunlari hali belgilanmagan</p>
               <p style={{ fontSize: "14px", opacity: 0.7 }}>
-                Your teacher will assign practice days to you soon
+                O'qituvchingiz sizga tez orada amaliyot kunlarini tayinlaydi
               </p>
             </EmptyState>
           ) : (
             <EmptyState>
               <FaUserGraduate />
-              <p>No practice days available</p>
+              <p>Amaliyot kunlari mavjud emas</p>
               <p style={{ fontSize: "14px", opacity: 0.7 }}>
-                {getRoleDisplay(userData.role)}s don't have practice days
-                assigned
+                {getRoleDisplay(userData.role)}ga tayinlangan amaliyot kunlari
+                yo'q
               </p>
             </EmptyState>
           )
@@ -664,7 +662,7 @@ export default function StudentDashboard({ isDark = false }) {
                 <CellContent>
                   <CellIconWrapper>
                     <PiStudentBold />
-                    <CellLabel>Responsible Person</CellLabel>
+                    <CellLabel>Mas'ul shaxs</CellLabel>
                   </CellIconWrapper>
                   <CellValue>{prc.duty_name}</CellValue>
                 </CellContent>
@@ -673,7 +671,7 @@ export default function StudentDashboard({ isDark = false }) {
                 <CellContent>
                   <CellIconWrapper>
                     <FaLocationDot />
-                    <CellLabel>Location</CellLabel>
+                    <CellLabel>Mo'ljal</CellLabel>
                   </CellIconWrapper>
                   <CellValue>
                     {prc.address || prc.location || "Not specified"}
@@ -684,7 +682,7 @@ export default function StudentDashboard({ isDark = false }) {
                 <CellContent>
                   <CellIconWrapper>
                     <MdAccessTime />
-                    <CellLabel>Start Time</CellLabel>
+                    <CellLabel>Boshlanish vaqti</CellLabel>
                   </CellIconWrapper>
                   <CellValue>{prc.start_time}</CellValue>
                 </CellContent>
@@ -693,7 +691,7 @@ export default function StudentDashboard({ isDark = false }) {
                 <CellContent>
                   <CellIconWrapper>
                     <MdAccessTime />
-                    <CellLabel>End Time</CellLabel>
+                    <CellLabel>Tugash vaqti</CellLabel>
                   </CellIconWrapper>
                   <CellValue>{prc.end_time}</CellValue>
                 </CellContent>
@@ -709,7 +707,7 @@ export default function StudentDashboard({ isDark = false }) {
                   <CellContent>
                     <CellIconWrapper>
                       <FaLocationDot />
-                      <CellLabel>Location</CellLabel>
+                      <CellLabel>Lokatsiya</CellLabel>
                     </CellIconWrapper>
                     <CellValue>
                       {prc.address || prc.location || "Not specified"}
