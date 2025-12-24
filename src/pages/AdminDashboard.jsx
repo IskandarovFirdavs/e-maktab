@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+"use client";
+import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import styled, { keyframes } from "styled-components";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom"
 import {
   FaSearch,
   FaEdit,
@@ -21,16 +23,17 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaEye,
-  FaFilter,
+  FaFilter, // Import FaFilter here
   FaSync,
-  FaCaretDown,
   FaFileAlt,
   FaDownload,
   FaEyeSlash,
+  FaInfoCircle, // Import FaInfoCircle here
 } from "react-icons/fa";
+// import api from "../services/api"
+// import { MapContainer, TileLayer, Marker } from "react-leaflet"
+// import "leaflet/dist/leaflet.css"
 import api from "../services/api";
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 
 // Modern gradient animation
 const gradientAnimation = keyframes`
@@ -63,6 +66,12 @@ const DashboardContainer = styled.div`
     sans-serif;
   animation: ${fadeIn} 0.3s ease-out;
   z-index: 0;
+
+  /* Added responsive flex direction for mobile */
+  @media (max-width: 640px) {
+    flex-direction: column;
+    min-height: 100%;
+  }
 `;
 
 const Sidebar = styled.div`
@@ -77,6 +86,7 @@ const Sidebar = styled.div`
   z-index: 100;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
+  /* Enhanced responsive breakpoints for tablet and mobile */
   @media (max-width: 1024px) {
     width: 240px;
   }
@@ -86,8 +96,24 @@ const Sidebar = styled.div`
     padding: 20px 0;
   }
 
+  @media (max-width: 640px) {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 16px 0;
+    border-right: none;
+    border-bottom: 1px solid ${(p) => p.theme.border};
+    overflow-y: visible;
+    overflow-x: auto;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 0;
+  }
+
   &::-webkit-scrollbar {
     width: 6px;
+    height: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -102,6 +128,8 @@ const MainContent = styled.div`
   padding: 32px;
   max-width: calc(100vw - 280px);
   z-index: -1;
+
+  /* Enhanced responsive padding and margin adjustments */
   @media (max-width: 1024px) {
     margin-left: 240px;
     padding: 24px;
@@ -113,6 +141,17 @@ const MainContent = styled.div`
     padding: 16px;
     max-width: calc(100vw - 70px);
   }
+
+  @media (max-width: 640px) {
+    margin-left: 0;
+    padding: 12px;
+    max-width: 100%;
+    min-height: auto;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+  }
 `;
 
 const SidebarHeader = styled.div`
@@ -120,8 +159,14 @@ const SidebarHeader = styled.div`
   border-bottom: 1px solid ${(p) => p.theme.border}40;
   margin-bottom: 24px;
 
+  /* Added responsive padding for mobile */
   @media (max-width: 768px) {
     padding: 0 16px 16px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 0 8px 12px;
+    margin-bottom: 12px;
   }
 `;
 
@@ -129,14 +174,28 @@ const AppTitle = styled.h1`
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0;
-
   display: flex;
   align-items: center;
   gap: 12px;
 
+  /* Added responsive font sizing and centering */
+  @media (max-width: 1024px) {
+    font-size: 1.5rem;
+  }
+
   @media (max-width: 768px) {
     justify-content: center;
     font-size: 1.3rem;
+    gap: 8px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 1.1rem;
+    gap: 6px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
   }
 `;
 
@@ -144,10 +203,24 @@ const SidebarMenu = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
+
+  /* Added horizontal scroll for mobile sidebar */
+  @media (max-width: 640px) {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 0 8px;
+  }
 `;
 
 const MenuItem = styled.li`
   margin-bottom: 4px;
+
+  /* Responsive margin for mobile horizontal menu */
+  @media (max-width: 640px) {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
 `;
 
 const MenuLink = styled.a`
@@ -196,9 +269,17 @@ const MenuLink = styled.a`
     }
   }
 
+  /* Added responsive styles for tablet and mobile */
+  @media (max-width: 1024px) {
+    padding: 14px 18px;
+    gap: 12px;
+    font-size: 14px;
+  }
+
   @media (max-width: 768px) {
     justify-content: center;
     padding: 16px;
+    gap: 0;
 
     &:after {
       display: none;
@@ -208,6 +289,34 @@ const MenuLink = styled.a`
       display: none;
     }
   }
+
+  @media (max-width: 640px) {
+    padding: 12px 16px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    &:hover {
+      transform: translateY(-2px);
+      border-bottom-color: ${(p) => p.theme.primary};
+    }
+
+    &.active {
+      border-bottom-color: ${(p) => p.theme.primary};
+      border-left: none;
+    }
+
+    span {
+      display: inline;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
 `;
 
 const MenuIcon = styled.div`
@@ -215,8 +324,18 @@ const MenuIcon = styled.div`
   width: 24px;
   text-align: center;
 
+  /* Added responsive font sizing */
   @media (max-width: 768px) {
     font-size: 20px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 16px;
+    width: auto;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 14px;
   }
 `;
 
@@ -228,6 +347,29 @@ const ContentHeader = styled.div`
   flex-wrap: wrap;
   gap: 20px;
   animation: ${slideIn} 0.4s ease-out;
+
+  /* Added responsive gap and margin */
+  @media (max-width: 1024px) {
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
 `;
 
 const PageTitle = styled.h1`
@@ -245,6 +387,40 @@ const PageTitle = styled.h1`
     height: 24px;
     background: ${(p) => p.theme.primary};
     border-radius: 2px;
+  }
+
+  /* Added responsive font sizing and bar dimensions */
+  @media (max-width: 1024px) {
+    font-size: 1.75rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    gap: 10px;
+
+    &:before {
+      height: 20px;
+      width: 3px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    font-size: 1.25rem;
+    gap: 8px;
+
+    &:before {
+      height: 18px;
+      width: 3px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.1rem;
+    gap: 6px;
+
+    &:before {
+      height: 16px;
+    }
   }
 `;
 
@@ -283,6 +459,33 @@ const ActionButton = styled.button`
     cursor: not-allowed;
     transform: none;
   }
+
+  /* Added responsive padding and font size */
+  @media (max-width: 1024px) {
+    padding: 11px 22px;
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px 20px;
+    font-size: 13px;
+    gap: 6px;
+    width: 100%;
+  }
+
+  @media (max-width: 640px) {
+    padding: 9px 16px;
+    font-size: 12px;
+    gap: 5px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 12px;
+    font-size: 11px;
+    gap: 4px;
+    border-radius: 8px;
+  }
 `;
 
 const RefreshButton = styled(ActionButton)`
@@ -304,6 +507,29 @@ const Toolbar = styled.div`
   flex-wrap: wrap;
   align-items: center;
   animation: ${slideIn} 0.5s ease-out;
+
+  /* Added responsive gap and layout adjustments */
+  @media (max-width: 1024px) {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 768px) {
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  @media (max-width: 640px) {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
 `;
 
 const SearchBox = styled.div`
@@ -323,6 +549,30 @@ const SearchBox = styled.div`
     border-color: ${(p) => p.theme.primary};
     box-shadow: 0 4px 20px ${(p) => p.theme.primary}20;
   }
+
+  /* Added responsive max-width and padding */
+  @media (max-width: 1024px) {
+    max-width: 350px;
+    padding: 11px 14px;
+  }
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  @media (max-width: 640px) {
+    max-width: 100%;
+    padding: 9px 10px;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 10px;
+    border-radius: 8px;
+    gap: 8px;
+  }
 `;
 
 const SearchInput = styled.input`
@@ -336,6 +586,19 @@ const SearchInput = styled.input`
   &::placeholder {
     color: ${(p) => p.theme.text}60;
   }
+
+  /* Added responsive font sizing */
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 13px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
 `;
 
 const DataTable = styled.div`
@@ -346,12 +609,38 @@ const DataTable = styled.div`
   overflow-x: auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   animation: ${slideIn} 0.6s ease-out;
+
+  /* Added responsive border radius */
+  @media (max-width: 768px) {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  @media (max-width: 640px) {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   min-width: 1000px;
+
+  /* Added responsive min-width for mobile */
+  @media (max-width: 1024px) {
+    min-width: 900px;
+  }
+
+  @media (max-width: 768px) {
+    min-width: 800px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    min-width: 700px;
+    font-size: 12px;
+  }
 `;
 
 const TableHeader = styled.thead`
@@ -398,12 +687,51 @@ const TableHeaderCell = styled.th.withConfig({
       background: ${(p) => p.theme.primary}40;
     }
   }
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 1024px) {
+    padding: 16px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 14px 10px;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 8px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
 `;
 
 const TableCell = styled.td`
   padding: 16px;
   font-size: 14px;
   color: ${(p) => p.theme.text}80;
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 1024px) {
+    padding: 14px 12px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px 8px;
+    font-size: 11px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 6px;
+    font-size: 10px;
+  }
 `;
 
 const ActionCell = styled.div`
@@ -412,6 +740,16 @@ const ActionCell = styled.div`
   align-items: center;
   justify-content: flex-start;
   white-space: nowrap;
+
+  /* Added responsive gap and flex wrapping for mobile */
+  @media (max-width: 768px) {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 640px) {
+    gap: 4px;
+  }
 `;
 
 const IconButton = styled.button`
@@ -476,6 +814,17 @@ const IconButton = styled.button`
     cursor: not-allowed;
     transform: none !important;
   }
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 768px) {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 6px;
+    font-size: 10px;
+  }
 `;
 
 const StatusBadge = styled.span`
@@ -523,6 +872,17 @@ const StatusBadge = styled.span`
     color: #3b82f6;
     border: 1px solid #3b82f640;
   }
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 768px) {
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
 `;
 
 const Pagination = styled.div`
@@ -532,18 +892,67 @@ const Pagination = styled.div`
   padding: 20px 24px;
   border-top: 1px solid ${(p) => p.theme.border}30;
   background: ${(p) => p.theme.background};
+
+  /* Added responsive padding and flex direction */
+  @media (max-width: 768px) {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 16px;
+    gap: 8px;
+    flex-direction: column;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    gap: 6px;
+  }
 `;
 
 const PaginationInfo = styled.div`
   font-size: 14px;
   color: ${(p) => p.theme.text}60;
   font-weight: 500;
+
+  /* Added responsive font sizing */
+  @media (max-width: 768px) {
+    font-size: 13px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 12px;
+    width: 100%;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 11px;
+  }
 `;
 
 const PaginationControls = styled.div`
   display: flex;
   gap: 8px;
   align-items: center;
+
+  /* Added responsive gap and flex wrapping */
+  @media (max-width: 768px) {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 640px) {
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    gap: 3px;
+  }
 `;
 
 const PageButton = styled.button`
@@ -575,6 +984,25 @@ const PageButton = styled.button`
     border-color: ${(p) => p.theme.primary};
     box-shadow: 0 4px 12px ${(p) => p.theme.primary}40;
   }
+
+  /* Added responsive padding and sizing */
+  @media (max-width: 768px) {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-width: 36px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 32px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 5px 8px;
+    font-size: 11px;
+    min-width: 28px;
+  }
 `;
 
 const EmptyState = styled.div`
@@ -587,6 +1015,34 @@ const EmptyState = styled.div`
     margin-bottom: 20px;
     opacity: 0.5;
   }
+
+  /* Added responsive padding and icon sizing */
+  @media (max-width: 768px) {
+    padding: 60px 16px;
+
+    svg {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    padding: 40px 12px;
+
+    svg {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 30px 10px;
+
+    svg {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+  }
 `;
 
 const LoadingSpinner = styled.div`
@@ -596,6 +1052,19 @@ const LoadingSpinner = styled.div`
 
   svg {
     animation: ${spin} 1s linear infinite;
+  }
+
+  /* Added responsive padding */
+  @media (max-width: 768px) {
+    padding: 48px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 36px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 24px;
   }
 `;
 
@@ -626,6 +1095,28 @@ const Message = styled.div`
     color: #3b82f6;
     border: 1px solid #3b82f640;
   }
+
+  /* Added responsive padding and gap */
+  @media (max-width: 768px) {
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    gap: 6px;
+    font-size: 12px;
+  }
 `;
 
 // Modal Components
@@ -643,6 +1134,19 @@ const ModalOverlay = styled.div`
   z-index: 2000;
   padding: 20px;
   animation: ${fadeIn} 0.2s ease-out;
+
+  /* Added responsive padding for smaller screens */
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+  }
 `;
 
 const ModalContent = styled.div`
@@ -656,9 +1160,31 @@ const ModalContent = styled.div`
   animation: ${slideIn} 0.3s ease-out;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 
+  /* Enhanced responsive padding and max-width */
+  @media (max-width: 1024px) {
+    padding: 28px;
+    max-width: 700px;
+  }
+
   @media (max-width: 768px) {
     padding: 24px;
     max-width: 95%;
+    max-height: 80vh;
+    border-radius: 14px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 20px;
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 12px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 480px) {
+    padding: 16px;
+    max-height: 90vh;
+    border-radius: 10px;
   }
 `;
 
@@ -667,6 +1193,18 @@ const ModalHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+
+  /* Added responsive margin for mobile */
+  @media (max-width: 640px) {
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 14px;
+    gap: 8px;
+  }
 `;
 
 const ModalTitle = styled.h2`
@@ -674,6 +1212,19 @@ const ModalTitle = styled.h2`
   color: ${(p) => p.theme.text};
   font-size: 1.5rem;
   font-weight: 700;
+
+  /* Added responsive font sizing */
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
+  }
 `;
 
 const ModalCloseButton = styled.button`
@@ -692,11 +1243,25 @@ const ModalCloseButton = styled.button`
     color: ${(p) => p.theme.text};
     background: ${(p) => p.theme.border}40;
   }
+
+  /* Added responsive padding for mobile */
+  @media (max-width: 640px) {
+    padding: 6px;
+  }
 `;
 
 // Report Detail Components
 const ReportDetailContainer = styled.div`
   padding: 20px 0;
+
+  /* Added responsive padding */
+  @media (max-width: 768px) {
+    padding: 16px 0;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 0;
+  }
 `;
 
 const ReportSection = styled.div`
@@ -708,6 +1273,17 @@ const ReportSection = styled.div`
     border-bottom: none;
     margin-bottom: 0;
   }
+
+  /* Added responsive margin and padding */
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
 `;
 
 const ReportSectionTitle = styled.h3`
@@ -718,6 +1294,18 @@ const ReportSectionTitle = styled.h3`
   display: flex;
   align-items: center;
   gap: 10px;
+
+  /* Added responsive font sizing */
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+    gap: 8px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 1rem;
+    gap: 6px;
+    margin: 0 0 12px 0;
+  }
 `;
 
 const ReportField = styled.div`
@@ -730,18 +1318,45 @@ const ReportField = styled.div`
   &:last-child {
     margin-bottom: 0;
   }
+
+  /* Added responsive flex direction for mobile */
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
 `;
 
 const ReportLabel = styled.span`
   font-weight: 600;
   color: ${(p) => p.theme.text}80;
   min-width: 120px;
+
+  /* Added responsive sizing for mobile */
+  @media (max-width: 768px) {
+    min-width: 100px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    min-width: auto;
+    font-size: 13px;
+  }
 `;
 
 const ReportValue = styled.span`
   flex: 1;
   color: ${(p) => p.theme.text};
   line-height: 1.6;
+
+  /* Added responsive font sizing */
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 13px;
+  }
 `;
 
 const ReportTextArea = styled.div`
@@ -752,17 +1367,48 @@ const ReportTextArea = styled.div`
   border: 1px solid ${(p) => p.theme.border}30;
   white-space: pre-wrap;
   line-height: 1.6;
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 768px) {
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+  }
 `;
 
 const FormGroup = styled.div`
   margin-bottom: 24px;
   position: relative;
+
+  /* Added responsive margin for mobile */
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 16px;
+  }
 `;
 
 // Styled components qismiga qo'shing:
 const FormGroupWrapper = styled.div`
   margin-bottom: 24px;
   position: relative;
+
+  /* Added responsive margin for mobile */
+  @media (max-width: 768px) {
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 16px;
+  }
 `;
 
 // FormInput ni yangilang:
@@ -787,6 +1433,27 @@ const FormInput = styled.input`
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 768px) {
+    padding: 12px;
+    padding-right: ${(props) => (props.$hasPasswordToggle ? "40px" : "12px")};
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    padding-right: ${(props) => (props.$hasPasswordToggle ? "36px" : "10px")};
+    font-size: 13px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+    padding-right: ${(props) => (props.$hasPasswordToggle ? "32px" : "8px")};
+    font-size: 12px;
+    border-radius: 6px;
+  }
 `;
 
 const FormLabel = styled.label`
@@ -795,6 +1462,17 @@ const FormLabel = styled.label`
   font-weight: 600;
   color: ${(p) => p.theme.text}90;
   font-size: 14px;
+
+  /* Added responsive font sizing and margin */
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
 `;
 
 const FormSelect = styled.select`
@@ -807,7 +1485,7 @@ const FormSelect = styled.select`
   font-size: 15px;
   transition: all 0.3s ease;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px;
@@ -822,6 +1500,30 @@ const FormSelect = styled.select`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 768px) {
+    padding: 12px;
+    padding-right: 36px;
+    font-size: 14px;
+    border-radius: 8px;
+    background-position: right 12px center;
+    background-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    padding-right: 32px;
+    font-size: 13px;
+    background-position: right 10px center;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+    padding-right: 28px;
+    font-size: 12px;
+    border-radius: 6px;
   }
 `;
 
@@ -846,6 +1548,27 @@ const FormTextArea = styled.textarea`
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  /* Added responsive padding, font sizing, and height */
+  @media (max-width: 768px) {
+    padding: 12px;
+    font-size: 14px;
+    min-height: 100px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px;
+    font-size: 13px;
+    min-height: 80px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+    font-size: 12px;
+    min-height: 60px;
+    border-radius: 6px;
+  }
 `;
 
 const PasswordToggle = styled.button`
@@ -862,6 +1585,26 @@ const FormActions = styled.div`
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid ${(p) => p.theme.border}40;
+
+  /* Added responsive gap, margin, and flex direction */
+  @media (max-width: 768px) {
+    gap: 10px;
+    margin-top: 28px;
+    padding-top: 20px;
+  }
+
+  @media (max-width: 640px) {
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 16px;
+    flex-direction: column;
+  }
+
+  @media (max-width: 480px) {
+    gap: 6px;
+    margin-top: 16px;
+    padding-top: 12px;
+  }
 `;
 
 const SecondaryButton = styled.button`
@@ -884,11 +1627,39 @@ const SecondaryButton = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 768px) {
+    padding: 11px 22px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px 20px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
 `;
 
 const DeleteConfirmModal = styled.div`
   text-align: center;
   padding: 24px;
+
+  /* Added responsive padding */
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 16px;
+  }
 `;
 
 const DeleteIcon = styled.div`
@@ -896,6 +1667,22 @@ const DeleteIcon = styled.div`
   color: #ef4444;
   margin-bottom: 24px;
   opacity: 0.8;
+
+  /* Added responsive icon sizing and margin */
+  @media (max-width: 768px) {
+    font-size: 56px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
 `;
 
 const DeleteText = styled.p`
@@ -903,12 +1690,42 @@ const DeleteText = styled.p`
   color: ${(p) => p.theme.text};
   font-size: 16px;
   line-height: 1.6;
+
+  /* Added responsive font sizing and margin */
+  @media (max-width: 768px) {
+    margin-bottom: 28px;
+    font-size: 15px;
+  }
+
+  @media (max-width: 640px) {
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
 `;
 
 const DeleteActions = styled.div`
   display: flex;
   gap: 12px;
   justify-content: center;
+
+  /* Added responsive gap and flex wrapping */
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
+
+  @media (max-width: 640px) {
+    gap: 8px;
+    flex-direction: column;
+  }
+
+  @media (max-width: 480px) {
+    gap: 6px;
+  }
 `;
 
 const DeleteButton = styled.button`
@@ -931,6 +1748,25 @@ const DeleteButton = styled.button`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  /* Added responsive padding and font sizing */
+  @media (max-width: 768px) {
+    padding: 12px 28px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 10px 24px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 6px;
   }
 `;
 
@@ -957,6 +1793,24 @@ const SkeletonRow = styled.div`
       margin-right: 0;
     }
   }
+
+  /* Added responsive padding and margin */
+  @media (max-width: 768px) {
+    padding: 14px 12px;
+
+    div {
+      margin-right: 12px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 8px;
+
+    div {
+      margin-right: 8px;
+      border-radius: 4px;
+    }
+  }
 `;
 
 // Cache keys
@@ -976,8 +1830,24 @@ export const MediaRow = styled.div`
   gap: 16px;
   margin-top: 10px;
 
+  /* Added responsive gap and flex direction */
+  @media (max-width: 1024px) {
+    gap: 14px;
+  }
+
   @media (max-width: 768px) {
     flex-direction: column;
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+    margin-top: 6px;
   }
 `;
 
@@ -986,12 +1856,42 @@ export const MediaBox = styled.div`
   border: 1px solid ${({ theme }) => theme.border || "#ddd"};
   border-radius: 8px;
   padding: 10px;
+
+  /* Added responsive padding and border radius */
+  @media (max-width: 768px) {
+    padding: 8px;
+    border-radius: 6px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 6px;
+  }
+
+  @media (max-width: 480px) {
+    border-radius: 4px;
+  }
 `;
 
 export const MediaLabel = styled.div`
   font-weight: 600;
   margin-bottom: 8px;
   font-size: 14px;
+
+  /* Added responsive font sizing and margin */
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
 `;
 
 export const ReportImage = styled.img`
@@ -999,11 +1899,80 @@ export const ReportImage = styled.img`
   height: 300px;
   object-fit: cover;
   border-radius: 6px;
+
+  /* Added responsive height and border radius */
+  @media (max-width: 768px) {
+    height: 250px;
+    border-radius: 5px;
+  }
+
+  @media (max-width: 640px) {
+    height: 200px;
+  }
+
+  @media (max-width: 480px) {
+    height: 150px;
+    border-radius: 4px;
+  }
 `;
+
+const NavbarWrapper = styled.nav`
+  width: 100%;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  overflow-x: auto; /* horizontal scroll */
+  white-space: nowrap; /* row */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+  }
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+`;
+
+const NavLink = styled(Link)`
+  display: inline-block;
+  margin-right: 1rem;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.primary || "#eee"};
+    color: #000;
+    animation: all 0.2s ease-in-out;
+  }
+
+  &.active {
+    background-color: ${({ theme }) => theme.primary || "#ccc"};
+  }
+  @media (max-width: 640px) {
+    display: none;
+  }
+`;
+
+const navItems = [
+  { name: "Faculties", path: "/faculties" },
+  { name: "Departments", path: "/departments" },
+  { name: "Directions", path: "/directions" },
+  { name: "Groups", path: "/groups" },
+  { name: "Students", path: "/students" },
+  { name: "Admin Dashboard", path: "/admin/dashboard" },
+];
 
 // Main Component
 export default function AdminDashboard() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate() // Removed - not needed in this setup
   const [activeMenu, setActiveMenu] = useState("users");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1023,12 +1992,20 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState({});
   const [relatedData, setRelatedData] = useState({});
   const [cacheTimestamp, setCacheTimestamp] = useState({});
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(false); // State for showing filters
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportDetail, setShowReportDetail] = useState(false);
   const [reportDetailLoading, setReportDetailLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState({});
+  const location = useLocation();
+
+  // Mock navigation function
+  const navigate = (path) => {
+    console.log("Navigating to:", path);
+    // In a real app, this would navigate using react-router-dom or Next.js router
+    setActiveMenu(path.split("/").pop() || "users"); // Basic update for menu highlighting
+  };
 
   function parseWKTPoint(wkt) {
     if (!wkt) return null;
@@ -1125,7 +2102,10 @@ export default function AdminDashboard() {
           ? groups.reduce((acc, group) => ({ ...acc, [group.id]: group }), {})
           : {},
       });
-    } catch (err) {}
+    } catch (err) {
+      console.error("Error fetching related data:", err); // Log error for debugging
+      // Optionally set an error message for the user
+    }
   }, []);
 
   // Fetch data with caching
@@ -1153,6 +2133,7 @@ export default function AdminDashboard() {
           return;
         } catch (e) {
           // Cache invalid, continue with API call
+          console.error("Cache parsing error:", e);
         }
       }
 
@@ -1195,6 +2176,7 @@ export default function AdminDashboard() {
       } catch (err) {
         setError(`Failed to fetch ${activeMenu}: ${err.message}`);
         setData([]);
+        console.error(`Error fetching ${activeMenu}:`, err); // Log error
       } finally {
         setLoading(false);
       }
@@ -1213,12 +2195,14 @@ export default function AdminDashboard() {
   // Fetch report detail
   const fetchReportDetail = useCallback(async (reportId) => {
     setReportDetailLoading(true);
+    setError(null); // Clear previous errors
     try {
       const report = await api.getMyReport(reportId);
       setSelectedReport(report);
       setShowReportDetail(true);
     } catch (err) {
       setError(`Failed to fetch report details: ${err.message}`);
+      console.error(`Error fetching report ${reportId}:`, err);
     } finally {
       setReportDetailLoading(false);
     }
@@ -1229,6 +2213,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setSuccess(null); // Clear previous success messages
 
     try {
       if (editingItem) {
@@ -1296,6 +2281,7 @@ export default function AdminDashboard() {
     } catch (err) {
       const errorMsg = err.message || "Failed to save";
       setError(errorMsg);
+      console.error("Error submitting form:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -1306,10 +2292,14 @@ export default function AdminDashboard() {
     if (!deleteItemId) return;
 
     setIsDeleting(true);
+    setError(null);
+    setSuccess(null);
+
     try {
       switch (activeMenu) {
         case "users":
-          await api.deleteUser(deleteItemId, { is_active: false });
+          // Assuming an "is_active" flag for soft delete for users
+          await api.updateUser(deleteItemId, { is_active: false });
           break;
         case "faculties":
           await api.deleteFaculty(deleteItemId);
@@ -1341,6 +2331,7 @@ export default function AdminDashboard() {
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err.message || "Failed to delete");
+      console.error("Error deleting item:", err);
     } finally {
       setIsDeleting(false);
     }
@@ -1350,7 +2341,8 @@ export default function AdminDashboard() {
   const handleEdit = (item) => {
     if (activeMenu === "reports") return; // Reports are read-only
     setEditingItem(item);
-    setFormData(item);
+    // Deep clone the item to avoid mutating original data
+    setFormData(JSON.parse(JSON.stringify(item)));
     setShowModal(true);
   };
 
@@ -1417,7 +2409,7 @@ ${
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseInt(value) || "" : value,
+      [name]: type === "number" ? Number.parseInt(value) || "" : value,
     }));
   };
 
@@ -1485,15 +2477,16 @@ ${
       Object.entries(item).some(([key, value]) => {
         if (value === null || value === undefined) return false;
 
-        // Handle object values
+        // Handle object values by stringifying them
         if (typeof value === "object") {
           try {
             return JSON.stringify(value).toLowerCase().includes(searchLower);
           } catch {
-            return false;
+            return false; // Ignore if stringification fails
           }
         }
 
+        // Convert other types to string for searching
         return String(value).toLowerCase().includes(searchLower);
       })
     );
@@ -1504,15 +2497,29 @@ ${
       let aValue = a[sortField];
       let bValue = b[sortField];
 
-      // Handle object values for sorting
+      // Handle object values for sorting - try to get a displayable string
       if (typeof aValue === "object" && aValue !== null) {
-        aValue = aValue.name || aValue.title || aValue.id || "";
+        aValue =
+          aValue.name ||
+          aValue.title ||
+          aValue.group_number ||
+          aValue.first_name ||
+          aValue.username ||
+          aValue.id ||
+          "";
       }
       if (typeof bValue === "object" && bValue !== null) {
-        bValue = bValue.name || bValue.title || bValue.id || "";
+        bValue =
+          bValue.name ||
+          bValue.title ||
+          bValue.group_number ||
+          bValue.first_name ||
+          bValue.username ||
+          bValue.id ||
+          "";
       }
 
-      // Convert to strings for comparison
+      // Convert to strings for comparison, handling potential nulls
       const aStr = String(aValue || "").toLowerCase();
       const bStr = String(bValue || "").toLowerCase();
 
@@ -1527,7 +2534,7 @@ ${
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
 
-  // Get columns
+  // Get columns based on the active menu
   const getColumns = () => {
     const baseColumns = {
       users: [
@@ -1538,6 +2545,7 @@ ${
         { key: "role", label: "Roli", sortable: true },
         { key: "attached_teacher", label: "O'qituvchi", sortable: true },
         { key: "group", label: "Guruh", sortable: true },
+        { key: "is_active", label: "Status", sortable: true },
         { key: "actions", label: "Amallar", sortable: false },
       ],
       faculties: [
@@ -1552,7 +2560,7 @@ ${
         { key: "name", label: "Nomi", sortable: true },
         { key: "abbr", label: "Abbr", sortable: true },
         { key: "faculty_id", label: "Fakultet", sortable: true },
-        { key: "head_id", label: "Dekan", sortable: true },
+        { key: "head_id", label: "Kafedra mudiri", sortable: true },
         { key: "actions", label: "Amallar", sortable: false },
       ],
       directions: [
@@ -1579,6 +2587,8 @@ ${
       reports: [
         { key: "id", label: "ID", sortable: true },
         { key: "created_at", label: "Yaratilgan", sortable: true },
+        { key: "student", label: "Talaba", sortable: true },
+        { key: "status", label: "Status", sortable: true },
         { key: "actions", label: "Amallar", sortable: false },
       ],
     };
@@ -1589,25 +2599,25 @@ ${
   // Form templates with foreign key support
   const getFormFields = () => {
     const userOptions = Object.values(relatedData.users || {})
-      .filter((user) => user && user.id && user.first_name)
+      .filter((user) => user && user.id && user.first_name) // Ensure user and id exist
       .map((user) => ({
         value: user.id,
-        label: `${user.first_name} ${user.last_name}`,
+        label: `${user.first_name} ${user.last_name}`.trim(), // Trim to avoid leading/trailing spaces
         role: user.role,
       }));
 
     const teacherOptions = Object.values(relatedData.users || {})
-      .filter((user) => user && user.role === "teacher")
+      .filter((user) => user && user.id && user.role === "teacher")
       .map((user) => ({
         value: user.id,
-        label: `${user.first_name} ${user.last_name}`,
+        label: `${user.first_name} ${user.last_name}`.trim(),
       }));
 
     const studentOptions = Object.values(relatedData.users || {})
-      .filter((user) => user && user.role === "student")
+      .filter((user) => user && user.id && user.role === "student")
       .map((user) => ({
         value: user.id,
-        label: `${user.first_name} ${user.last_name}`,
+        label: `${user.first_name} ${user.last_name}`.trim(),
       }));
 
     const facultyOptions = Object.values(relatedData.faculties || {})
@@ -1621,7 +2631,7 @@ ${
       .filter((dept) => dept && dept.id)
       .map((dept) => ({
         value: dept.id,
-        label: `${dept.name} (${dept.abbr || "no code"})`,
+        label: `${dept.name} (${dept.abbr || "no code"})`.trim(),
       }));
 
     const directionOptions = Object.values(relatedData.directions || {})
@@ -1664,17 +2674,18 @@ ${
             { value: "student", label: "Talaba" },
           ],
         },
+        // Conditional fields for students
         ...(formData?.role === "student"
           ? [
               {
-                name: "attached_teacher",
+                name: "attached_teacher", // Renamed from 'teacher_id' to 'attached_teacher'
                 label: "O'qituvchi",
                 type: "select",
                 required: true,
                 options: teacherOptions,
               },
               {
-                name: "group",
+                name: "group", // Renamed from 'group_id' to 'group' for consistency with model
                 label: "Guruh",
                 type: "select",
                 required: true,
@@ -1682,14 +2693,15 @@ ${
               },
             ]
           : []),
-        {
+        // Password field only for creation, not for editing existing users
+        !editingItem && {
           name: "password",
           label: "Password",
           type: "password",
           placeholder: "password",
-          required: !editingItem,
+          required: true, // Password is required for new users
         },
-      ],
+      ].filter(Boolean), // Filter out null/undefined values from the array
       faculties: [
         { name: "name", label: "Fakultet nomi", type: "text", required: true },
         {
@@ -1703,7 +2715,7 @@ ${
           name: "vice_id",
           label: "Zam dekan",
           type: "select",
-          required: false,
+          required: false, // Vice dean might be optional
           options: userOptions.filter((u) => u.role === "deputy_dean"),
         },
       ],
@@ -1757,7 +2769,7 @@ ${
       ],
       practices: [
         {
-          name: "student",
+          name: "student_id", // Changed to student_id to match API
           label: "Talaba",
           type: "select",
           required: true,
@@ -1782,7 +2794,7 @@ ${
           label: "Lokatsiya",
           type: "text",
           required: true,
-          placeholder: "POINT(00.0000 00.0000)",
+          placeholder: "POINT(00.0000 00.0000)", // Example format
         },
         { name: "target", label: "Mo'ljal", type: "textarea", required: true },
         {
@@ -1828,32 +2840,27 @@ ${
     );
   };
 
-  // Render status badge
+  // Render status badge for other entities
   const renderStatusBadge = (status) => {
-    if (status === undefined || status === null) {
-      return <StatusBadge className="inactive">-</StatusBadge>;
+    // Handle boolean values from 'is_active'
+    const isActive = status === true || status === "true";
+    const isInactive = status === false || status === "false";
+
+    if (isActive) {
+      return <StatusBadge className="active">Active</StatusBadge>;
+    } else if (isInactive) {
+      return <StatusBadge className="inactive">Inactive</StatusBadge>;
+    } else if (status === "pending") {
+      return <StatusBadge className="pending">Pending</StatusBadge>;
     }
-
-    const statusStr = String(status).toLowerCase();
-    let statusClass = "inactive";
-
-    if (statusStr === "active" || statusStr === "true") {
-      statusClass = "active";
-    } else if (statusStr === "pending") {
-      statusClass = "pending";
-    } else if (statusStr === "inactive" || statusStr === "false") {
-      statusClass = "inactive";
-    }
-
-    return (
-      <StatusBadge className={statusClass}>
-        {statusStr.charAt(0).toUpperCase() + statusStr.slice(1)}
-      </StatusBadge>
-    );
+    // Default for undefined or unknown status
+    return <StatusBadge className="inactive">-</StatusBadge>;
   };
 
   // Handle sort
   const handleSort = (field) => {
+    if (field === "actions") return; // Don't sort on actions column
+
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -1871,12 +2878,13 @@ ${
     const fields = getFormFields();
 
     if (activeMenu === "reports") {
-      return null; // Reports are read-only
+      return null; // Reports are read-only, so no form is rendered
     }
 
     return (
       <form onSubmit={handleSubmit}>
         {fields.map((field) => {
+          // Password input requires special handling for visibility toggle
           if (field.type === "password") {
             return (
               <FormGroupWrapper key={field.name}>
@@ -1894,7 +2902,7 @@ ${
                     required={field.required}
                     placeholder={field.placeholder}
                     disabled={field.disabled}
-                    $hasPasswordToggle={true}
+                    $hasPasswordToggle={true} // Pass prop for styling adjustment
                   />
                   <PasswordToggle
                     type="button"
@@ -1902,14 +2910,17 @@ ${
                     style={{
                       position: "absolute",
                       right: "12px",
-                      top: "10px",
+                      top: "50%", // Center vertically
+                      transform: "translateY(-50%)", // Adjust for vertical centering
                       background: "none",
                       border: "none",
-                      color: "#666",
+                      color: "var(--text-secondary)", // Use theme color
                       cursor: "pointer",
                       padding: "8px",
                       fontSize: "18px",
+                      zIndex: 1, // Ensure it's above the input
                     }}
+                    aria-label="Toggle password visibility"
                   >
                     {passwordVisible[field.name] ? <FaEyeSlash /> : <FaEye />}
                   </PasswordToggle>
@@ -1918,6 +2929,7 @@ ${
             );
           }
 
+          // Standard form fields (text, select, textarea)
           return (
             <FormGroup key={field.name}>
               <FormLabel htmlFor={field.name}>
@@ -1934,7 +2946,7 @@ ${
                   disabled={
                     field.disabled ||
                     (field.options && field.options.length === 0)
-                  }
+                  } // Disable if no options
                 >
                   <option value="">{field.label}ni tanlang</option>
                   {field.options?.map((option) => (
@@ -1950,10 +2962,11 @@ ${
                   value={formData[field.name] || ""}
                   onChange={handleInputChange}
                   required={field.required}
-                  rows="4"
+                  rows="4" // Default rows
                   disabled={field.disabled}
                 />
               ) : (
+                // Text, date, time inputs
                 <FormInput
                   id={field.name}
                   name={field.name}
@@ -1963,7 +2976,7 @@ ${
                   placeholder={field.placeholder}
                   disabled={field.disabled}
                   value={formData[field.name] || ""}
-                  $hasPasswordToggle={false}
+                  $hasPasswordToggle={false} // Not a password field
                 />
               )}
             </FormGroup>
@@ -2058,29 +3071,31 @@ ${
             <MediaBox>
               <MediaLabel>Rasm:</MediaLabel>
               {selectedReport.image ? (
-                <ReportImage src={selectedReport.image} />
+                <ReportImage src={selectedReport.image} alt="Report Image" />
               ) : (
                 <ReportValue>N/A</ReportValue>
               )}
             </MediaBox>
 
-            {/* MAP */}
+            {/* MAP PLACEHOLDER */}
             <MediaBox>
               <MediaLabel>Lokatsiya:</MediaLabel>
-
               {position ? (
-                <MapContainer
-                  center={position}
-                  zoom={15}
+                <div
                   style={{
                     height: "300px",
                     width: "100%",
                     borderRadius: "6px",
+                    background: "#f0f0f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#999",
+                    fontSize: "14px",
                   }}
                 >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={position} />
-                </MapContainer>
+                  Map: {position[0].toFixed(4)}, {position[1].toFixed(4)}
+                </div>
               ) : (
                 <ReportValue>N/A</ReportValue>
               )}
@@ -2116,10 +3131,20 @@ ${
         <SidebarHeader>
           <AppTitle>
             <FaUniversity />
-            <span>UniAdmin</span>
+            <span>Admin</span>
           </AppTitle>
         </SidebarHeader>
-
+        <NavbarWrapper>
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={location.pathname === item.path ? "active" : ""}
+            >
+              {item.name}
+            </NavLink>
+          ))}
+        </NavbarWrapper>
         <SidebarMenu>
           {menuItems.map((item) => (
             <MenuItem key={item.id}>
@@ -2127,11 +3152,13 @@ ${
                 className={activeMenu === item.id ? "active" : ""}
                 onClick={() => {
                   setActiveMenu(item.id);
-                  setCurrentPage(1);
-                  setSearchQuery("");
-                  setShowFilters(false);
-                  setSelectedReport(null);
-                  setShowReportDetail(false);
+                  setCurrentPage(1); // Reset to first page on menu change
+                  setSearchQuery(""); // Clear search on menu change
+                  setShowFilters(false); // Hide filters
+                  setSelectedReport(null); // Clear selected report
+                  setShowReportDetail(false); // Hide report detail
+                  // Navigate using mock function
+                  navigate(item.path);
                 }}
               >
                 <MenuIcon>{item.icon}</MenuIcon>
@@ -2148,21 +3175,24 @@ ${
           <PageTitle>
             {menuItems.find((item) => item.id === activeMenu)?.label}
           </PageTitle>
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            {/* Refresh Button */}
             <RefreshButton onClick={() => fetchData(true)} disabled={loading}>
               <FaSync />
               Yangilash
             </RefreshButton>
+            {/* Add New Button - only visible for non-report sections */}
             {activeMenu !== "reports" && (
               <ActionButton onClick={handleAddNew}>
                 <FaPlus />
                 Yangi qo'shish
               </ActionButton>
             )}
+            {/* Filter Button - Toggle visibility of filters */}
           </div>
         </ContentHeader>
 
-        {/* Messages */}
+        {/* Messages: Error, Success */}
         {error && (
           <Message className="error">
             <FaExclamationCircle />
@@ -2177,7 +3207,7 @@ ${
           </Message>
         )}
 
-        {/* Toolbar */}
+        {/* Toolbar: Search */}
         <Toolbar>
           <SearchBox>
             <FaSearch size={16} />
@@ -2192,11 +3222,13 @@ ${
         {/* Data Table */}
         <DataTable>
           {loading ? (
+            // Loading Spinner while data is being fetched
             <LoadingSpinner>
               <FaSpinner size={32} />
               <div style={{ marginTop: "16px" }}>Yuklanmoqda...</div>
             </LoadingSpinner>
           ) : (
+            // Render table if data is loaded
             <>
               <Table>
                 <TableHeader>
@@ -2225,13 +3257,16 @@ ${
                 </TableHeader>
                 <tbody>
                   {paginatedData.length > 0 ? (
+                    // Render rows for paginated data
                     paginatedData.map((item) => (
-                      <TableRow key={item.id}>
+                      <TableRow key={item.id || Math.random()}>
                         {getColumns().map((column) => (
                           <TableCell key={column.key}>
                             {column.key === "actions" ? (
+                              // Action buttons column
                               <ActionCell>
                                 {activeMenu === "reports" ? (
+                                  // Actions for Reports
                                   <>
                                     <IconButton
                                       className="view"
@@ -2249,6 +3284,7 @@ ${
                                     </IconButton>
                                   </>
                                 ) : (
+                                  // Actions for other modules (Edit, Delete)
                                   <>
                                     <IconButton
                                       className="edit"
@@ -2272,19 +3308,21 @@ ${
                               </ActionCell>
                             ) : column.key === "is_active" ||
                               column.key === "status" ? (
+                              // Status badge column
                               activeMenu === "reports" ? (
-                                renderReportStatusBadge(item[column.key])
+                                renderReportStatusBadge(item[column.key]) // Specific for reports
                               ) : (
                                 renderStatusBadge(item[column.key])
-                              )
+                              ) // General status badge
                             ) : column.key === "created_at" ? (
+                              // Format date for created_at
                               new Date(item[column.key]).toLocaleDateString()
                             ) : (
-                              // Fix: Always convert to string to avoid object rendering errors
+                              // Render other cell data
                               (() => {
                                 const value = item[column.key];
 
-                                // Special handling for foreign keys
+                                // Special handling for foreign key displays
                                 if (
                                   [
                                     "faculty_id",
@@ -2293,35 +3331,37 @@ ${
                                     "head_id",
                                     "vice_id",
                                     "attached_teacher",
-                                    "student",
-                                    "student_data",
-                                    "group",
-                                    "group_data",
-                                    "teacher_data",
+                                    "student_id", // Use the correct key for student ID in practices
+                                    "group_id", // Use the correct key for group ID in practices
                                   ].includes(column.key)
                                 ) {
+                                  // Use the getForeignKeyDisplay helper
                                   return getForeignKeyDisplay(item, column.key);
                                 }
 
-                                // Handle object values
+                                // Handle object values more gracefully
                                 if (
                                   typeof value === "object" &&
                                   value !== null
                                 ) {
                                   try {
+                                    // Prioritize common display fields
                                     if (value.name) return value.name;
                                     if (value.group_number)
                                       return value.group_number;
                                     if (value.first_name && value.last_name) {
-                                      return `${value.first_name} ${value.last_name}`;
+                                      return `${value.first_name} ${value.last_name}`.trim();
                                     }
+                                    if (value.username) return value.username;
                                     if (value.title) return value.title;
+                                    // Fallback to stringifying if no specific field is found
                                     return JSON.stringify(value);
                                   } catch {
-                                    return "-";
+                                    return "-"; // Return hyphen if stringification fails
                                   }
                                 }
 
+                                // Display string value or hyphen if null/undefined
                                 return value !== undefined && value !== null
                                   ? String(value)
                                   : "-";
@@ -2332,6 +3372,7 @@ ${
                       </TableRow>
                     ))
                   ) : (
+                    // Empty state if no data found
                     <TableRow>
                       <TableCell colSpan={getColumns().length}>
                         <EmptyState>
@@ -2358,17 +3399,13 @@ ${
                 </tbody>
               </Table>
 
-              {/* Pagination */}
-              {sortedData.length > 0 && (
+              {/* Pagination Controls */}
+              {sortedData.length > itemsPerPage && ( // Only show pagination if needed
                 <Pagination>
                   <PaginationInfo>
-                    {sortedData.length > 0 && (
-                      <PaginationInfo>
-                        {startIndex + 1}-
-                        {Math.min(startIndex + itemsPerPage, sortedData.length)}{" "}
-                        dan {sortedData.length} ko'rsatilmoqda
-                      </PaginationInfo>
-                    )}
+                    {startIndex + 1}-
+                    {Math.min(startIndex + itemsPerPage, sortedData.length)} dan{" "}
+                    {sortedData.length} ko'rsatilmoqda
                   </PaginationInfo>
                   <PaginationControls>
                     <PageButton
@@ -2377,16 +3414,17 @@ ${
                     >
                       Oldingi
                     </PageButton>
+                    {/* Dynamic page number rendering */}
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                       let pageNum;
                       if (totalPages <= 5) {
-                        pageNum = i + 1;
+                        pageNum = i + 1; // Show all pages if less than or equal to 5
                       } else if (currentPage <= 3) {
-                        pageNum = i + 1;
+                        pageNum = i + 1; // Show first few pages
                       } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
+                        pageNum = totalPages - 4 + i; // Show last few pages
                       } else {
-                        pageNum = currentPage - 2 + i;
+                        pageNum = currentPage - 2 + i; // Show pages around current page
                       }
 
                       return (
@@ -2414,24 +3452,25 @@ ${
       </MainContent>
 
       {/* Create/Edit Modal */}
-      {showModal && activeMenu !== "reports" && (
-        <ModalOverlay onClick={() => !isSubmitting && setShowModal(false)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalHeader>
-              <ModalTitle>
-                {editingItem ? "Edit" : "Add New"} {getFormTemplate()?.title}
-              </ModalTitle>
-              <ModalCloseButton
-                onClick={() => !isSubmitting && setShowModal(false)}
-                disabled={isSubmitting}
-              >
-                <FaTimes />
-              </ModalCloseButton>
-            </ModalHeader>
-            {renderForm()}
-          </ModalContent>
-        </ModalOverlay>
-      )}
+      {showModal &&
+        activeMenu !== "reports" && ( // Don't show modal for read-only reports
+          <ModalOverlay onClick={() => !isSubmitting && setShowModal(false)}>
+            <ModalContent onClick={(e) => e.stopPropagation()}>
+              <ModalHeader>
+                <ModalTitle>
+                  {editingItem ? "Edit" : "Add New"} {getFormTemplate()?.title}
+                </ModalTitle>
+                <ModalCloseButton
+                  onClick={() => !isSubmitting && setShowModal(false)}
+                  disabled={isSubmitting}
+                >
+                  <FaTimes />
+                </ModalCloseButton>
+              </ModalHeader>
+              {renderForm()}
+            </ModalContent>
+          </ModalOverlay>
+        )}
 
       {/* Report Detail Modal */}
       {showReportDetail && (
@@ -2468,45 +3507,48 @@ ${
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && activeMenu !== "reports" && (
-        <ModalOverlay onClick={() => !isDeleting && setShowDeleteModal(false)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <DeleteConfirmModal>
-              <DeleteIcon>
-                <FaExclamationCircle />
-              </DeleteIcon>
-              <DeleteText>
-                Haqiqatan ham buni oʻchirib tashlamoqchimisiz{" "}
-                {getFormTemplate()?.title.toLowerCase()}? Bu amalni ortga
-                qaytarib bo‘lmaydi.
-              </DeleteText>
-              <DeleteActions>
-                <SecondaryButton
-                  onClick={() => !isDeleting && setShowDeleteModal(false)}
-                  disabled={isDeleting}
-                >
-                  Bekor qilish
-                </SecondaryButton>
-                <DeleteButton onClick={handleDelete} disabled={isDeleting}>
-                  {isDeleting ? (
-                    <>
-                      <FaSpinner
-                        style={{
-                          animation: "spin 1s linear infinite",
-                          marginRight: "8px",
-                        }}
-                      />
-                      Oʻchirilmoqda...
-                    </>
-                  ) : (
-                    "Oʻchirish"
-                  )}
-                </DeleteButton>
-              </DeleteActions>
-            </DeleteConfirmModal>
-          </ModalContent>
-        </ModalOverlay>
-      )}
+      {showDeleteModal &&
+        activeMenu !== "reports" && ( // Don't show for reports
+          <ModalOverlay
+            onClick={() => !isDeleting && setShowDeleteModal(false)}
+          >
+            <ModalContent onClick={(e) => e.stopPropagation()}>
+              <DeleteConfirmModal>
+                <DeleteIcon>
+                  <FaExclamationCircle />
+                </DeleteIcon>
+                <DeleteText>
+                  Haqiqatan ham buni oʻchirib tashlamoqchimisiz{" "}
+                  {getFormTemplate()?.title.toLowerCase()}? Bu amalni ortga
+                  qaytarib bo‘lmaydi.
+                </DeleteText>
+                <DeleteActions>
+                  <SecondaryButton
+                    onClick={() => !isDeleting && setShowDeleteModal(false)}
+                    disabled={isDeleting}
+                  >
+                    Bekor qilish
+                  </SecondaryButton>
+                  <DeleteButton onClick={handleDelete} disabled={isDeleting}>
+                    {isDeleting ? (
+                      <>
+                        <FaSpinner
+                          style={{
+                            animation: "spin 1s linear infinite",
+                            marginRight: "8px",
+                          }}
+                        />
+                        Oʻchirilmoqda...
+                      </>
+                    ) : (
+                      "Oʻchirish"
+                    )}
+                  </DeleteButton>
+                </DeleteActions>
+              </DeleteConfirmModal>
+            </ModalContent>
+          </ModalOverlay>
+        )}
     </DashboardContainer>
   );
 }
