@@ -2,7 +2,7 @@ import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import { useState, useEffect } from "react";
 import { lightTheme, darkTheme } from "./styles/theme.js";
-import { AuthProvider } from "./context/AuthContext.jsx";
+import { AuthProvider, useAuth } from "./context/AuthContext.jsx"; // ⭐️ useAuth import qo'shildi
 import PrivateRoute from "./context/PrivateRoute.jsx";
 import Navbar from "./layout/Navbar.jsx";
 import AppWrapper from "./styles/WeatherBackground.jsx";
@@ -27,22 +27,79 @@ function AppContent() {
     return localStorage.getItem("preferredTheme") === "dark";
   });
 
+  const { user, loading } = useAuth(); // ⭐️ useAuth qo'shildi
+  const location = useLocation();
+
+  // ⭐️ Muhim o'zgarish: Navbar faqat authenticated userlar va login sahifasida emas ko'rinadi
+  const hideNavbar = location.pathname === "/" || !user;
+
   useEffect(() => {
     localStorage.setItem("preferredTheme", dark ? "dark" : "light");
   }, [dark]);
 
-  const location = useLocation();
-  const hideNavbar = location.pathname === "/";
+  // ⭐️ Agar hali loading bo'lsa
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: dark ? "#1a1a1a" : "#f5f5f5",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "50px",
+              height: "50px",
+              border: "5px solid #f3f3f3",
+              borderTop: "5px solid #3498db",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 20px",
+            }}
+          ></div>
+          <p>Tizim yuklanmoqda...</p>
+        </div>
+
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <ThemeProvider theme={dark ? darkTheme : lightTheme}>
       <AppWrapper>
-        {/* Navbar faqat login pageda ko'rinmaydi */}
-        {!hideNavbar && <Navbar dark={dark} setDark={setDark} />}
+        {/* ⭐️ Navbar faqat login sahifasida va authenticated userlar uchun ko'rinadi */}
+        {!hideNavbar && <Navbar dark={dark} setDark={setDark} user={user} />}
 
         <Routes>
-          {/* Public route - Login */}
-          <Route path="/" element={<Login dark={dark} setDark={setDark} />} />
+          {/* ⭐️ Login sahifasi - faqat authenticated bo'lmaganlar uchun */}
+          <Route
+            path="/"
+            element={
+              !user ? (
+                <Login dark={dark} setDark={setDark} />
+              ) : (
+                // Agar user authenticated bo'lsa, uning roliga qarab yo'naltirish
+                <Navigate
+                  to={
+                    user.role === ROLES.STUDENT
+                      ? "/student/dashboard"
+                      : "/admin/dashboard"
+                  }
+                  replace
+                />
+              )
+            }
+          />
 
           {/* Student routes */}
           <Route
@@ -274,8 +331,9 @@ function AppContent() {
             }
           />
 
-          {/* ⭐️ 404 route - Not found (EN OXIRIDA) ⭐️ */}
-          <Route path="*" element={<NotFoundPage />} />
+          {/* 404 routes */}
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </AppWrapper>
     </ThemeProvider>
