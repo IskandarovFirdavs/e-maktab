@@ -2664,7 +2664,6 @@ ${
           type: "select",
           required: true,
           options: [
-            { value: "admin", label: "Admin" },
             { value: "rector", label: "Rektor" },
             { value: "vice_rector", label: "Rektor o'rinbosari" },
             { value: "dean", label: "Dekan" },
