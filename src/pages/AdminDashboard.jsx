@@ -2855,6 +2855,8 @@ ${
       return <StatusBadge className="rejected">Rejected</StatusBadge>;
     } else if (status === "success") {
       return <StatusBadge className="approved">Approved</StatusBadge>;
+    } else if (status === "no_permission") {
+      return <StatusBadge className="inactive">No Permission</StatusBadge>;
     }
     // Default for undefined or unknown status
     return <StatusBadge className="inactive">-</StatusBadge>;
