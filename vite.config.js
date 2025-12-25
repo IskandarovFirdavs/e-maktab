@@ -1,4 +1,3 @@
-// vite.config.js - local development uchun
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -30,9 +29,16 @@ export default defineConfig({
       },
     },
   },
-  // Build sozlamalari
   build: {
     outDir: "dist",
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "react-router-dom"],
+          ui: ["styled-components"],
+        },
+      },
+    },
   },
 });
