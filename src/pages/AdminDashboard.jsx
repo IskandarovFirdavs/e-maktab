@@ -2853,7 +2853,7 @@ ${
       return <StatusBadge className="pending">Pending</StatusBadge>;
     } else if (status === "rejected") {
       return <StatusBadge className="rejected">Rejected</StatusBadge>;
-    } else if (status === "approved") {
+    } else if (status === "success") {
       return <StatusBadge className="approved">Approved</StatusBadge>;
     }
     // Default for undefined or unknown status
