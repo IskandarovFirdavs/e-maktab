@@ -2768,7 +2768,7 @@ ${
       ],
       practices: [
         {
-          name: "student_id", // Changed to student_id to match API
+          name: "student",
           label: "Talaba",
           type: "select",
           required: true,
