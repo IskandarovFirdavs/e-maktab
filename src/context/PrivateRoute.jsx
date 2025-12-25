@@ -45,12 +45,6 @@ const PrivateRoute = ({ children, allowedRoles }) => {
 
   // 2. Agar user authenticated bo'lmasa
   if (!isAuthenticated) {
-    // Faqat login sahifasidan tashqari sahifalarga kirishga urinilganda
-    if (location.pathname !== "/") {
-      // Kechirasiz, avval tizimga kiring
-      alert("Iltimos, avval tizimga kiring!");
-    }
-
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
@@ -67,10 +61,18 @@ const PrivateRoute = ({ children, allowedRoles }) => {
           redirectPath = "/student/dashboard";
           break;
         case "teacher":
+          redirectPath = "/students";
+          break;
         case "head_of_department":
+          redirectPath = "/directions";
+          break;
         case "deputy_dean":
         case "dean":
+          redirectPath = "/departments";
+          break;
         case "rector":
+          redirectPath = "/faculties";
+          break;
         case "admin":
         case "super_user":
           redirectPath = "/admin/dashboard";
@@ -78,11 +80,6 @@ const PrivateRoute = ({ children, allowedRoles }) => {
         default:
           redirectPath = "/";
       }
-
-      // Xabar berish
-      alert(
-        `Sizga bu sahifaga kirish huquqi berilmagan! Siz "${user.role}" rolida kirdingiz.`
-      );
 
       return <Navigate to={redirectPath} replace />;
     }
